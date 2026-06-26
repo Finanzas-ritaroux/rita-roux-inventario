@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mermas — Inventario Rita Roux</title>
+<link rel="stylesheet" href="theme.css">
+</head>
+<body>
+
+<header class="app-header">
+  <div>
+    <div class="logo">Rita <span>Roux</span> Inventario</div>
+    <div class="subtitle">Mermas</div>
+  </div>
+  <div class="nav">
+    <a href="inicio.html">🏠 Inicio</a>
+    <a href="productos-recetas.html">📋 Productos y Recetas</a>
+    <a href="stock.html">📦 Stock</a>
+    <a href="entradas.html">🚚 Entradas</a>
+    <a href="mermas.html" class="cur">🗑 Mermas</a>
+    <a href="costos.html">💰 Costos</a>
+  </div>
+</header>
+
+<div class="container">
+
+  <div class="cards">
+    <div class="card bad"><div class="label">Merma este mes (valor)</div><div class="value" id="kpi-mes">—</div></div>
+    <div class="card warn"><div class="label">Ingrediente con más merma (mes)</div><div class="value" id="kpi-top" style="font-size:15px">—</div></div>
+    <div class="card accent"><div class="label">Registros este mes</div><div class="value" id="kpi-cant">—</div></div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title"><span><span class="dot"></span>Registrar merma</span></div>
+    <div class="row">
+      <div class="field" style="width:150px"><label>Fecha</label><input type="date" id="f-fecha"></div>
+      <div class="field" style="width:200px"><label>Ingrediente</label><input type="text" id="f-ing" list="dl-ingredientes" onchange="autocompletarUnidad()"></div>
+      <div class="field" style="width:100px"><label>Cantidad</label><input type="number" id="f-cant"></div>
+      <div class="field" style="width:90px"><label>Unidad</label><input type="text" id="f-unidad"></div>
+      <div class="field" style="width:180px"><label>Motivo</label>
+        <select id="f-motivo">
+          <option>Rotura</option>
+          <option>Caducidad / vencimiento</option>
+          <option>Error de preparación</option>
+          <option>Robo o pérdida</option>
+          <option>Otro</option>
+        </select>
+      </div>
+      <div class="field" style="flex:1;min-width:180px"><label>Comentario</label><input type="text" id="f-comentario" placeholder="Opcional"></div>
+      <button class="btn" onclick="registrarMerma()">Registrar Merma</button>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">
+      <span><span class="dot"></span>Historial de mermas</span>
+      <div class="row" style="gap:8px">
+        <input type="date" id="hist-ini">
+        <span style="font-size:12px;color:var(--mid)">a</span>
+        <input type="date" id="hist-fin">
+        <button class="btn-sm btn-outline btn" onclick="renderHistorial()">Filtrar</button>
+      </div>
+    </div>
+    <div class="tbl-wrap">
+      <table class="tbl">
+        <thead><tr><th>Fecha</th><th>Ingrediente</th><th class="num">Cantidad</th><th>Unidad</th><th>Motivo</th><th>Comentario</th><th class="num">Valor estimado</th></tr></thead>
+        <tbody id="tbody"><tr><td colspan="7" class="empty">Conectando…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<datalist id="dl-ingredientes"></datalist>
+<footer class="app-footer">Inventario Rita Roux Café · cada merma se registra como movimiento de stock con motivo</footer>
+
+<script src="gsheets.js"></script>
+<script>
+let INGREDIENTES = {};
+let MOVIMIENTOS = [];
+
+window.addEventListener('DOMContentLoaded', () => {
+  const hoy = new Date();
+  document.getElementById('f-fecha').value = hoy.toISOString().slice(0, 10);
+  const hace30 = new Date(hoy); hace30.setDate(hoy.getDate() - 30);
+  document.getElementById('hist-ini').value = hace30.toISOString().slice(0, 10);
+  document.getElementById('hist-fin').value = hoy.toISOString().slice(0, 10);
+  gsInit(onAuth);
+});
+
+async function onAuth() {
+  await invInitSheet();
+  INGREDIENTES = await invCargarIngredientes();
+  document.getElementById('dl-ingredientes').innerHTML = Object.values(INGREDIENTES).map(i => `<option value="${i.id}">${i.id} — ${i.nombre}</option>`).join('');
+  await cargarMovimientos();
+}
+
+async function cargarMovimientos() {
+  MOVIMIENTOS = (await invCargarMovimientos()).filter(m => m.tipo === MOV.MERMA);
+  renderHistorial();
+  renderKPIs();
+}
+
+function autocompletarUnidad() {
+  const ing = INGREDIENTES[document.getElementById('f-ing').value.trim()];
+  if (ing) document.getElementById('f-unidad').value = ing.unidad;
+}
+
+async function registrarMerma() {
+  const idIng = document.getElementById('f-ing').value.trim();
+  const ing = INGREDIENTES[idIng];
+  const cantidad = parseFloat(document.getElementById('f-cant').value);
+  if (!ing) { alert('Selecciona un ingrediente válido de la lista.'); return; }
+  if (!cantidad || cantidad <= 0) { alert('Ingresa una cantidad mayor a 0.'); return; }
+
+  await invAgregarMovimientos([{
+    fecha: document.getElementById('f-fecha').value || new Date().toISOString().slice(0, 10),
+    tipo: MOV.MERMA, idIngrediente: idIng, nombreIngrediente: ing.nombre,
+    cantidad: -Math.abs(cantidad), unidad: document.getElementById('f-unidad').value || ing.unidad,
+    costoUnitario: ing.costoActual || '', referencia: document.getElementById('f-motivo').value,
+    usuario: '', comentario: document.getElementById('f-comentario').value || '',
+  }]);
+
+  document.getElementById('f-ing').value = '';
+  document.getElementById('f-cant').value = '';
+  document.getElementById('f-unidad').value = '';
+  document.getElementById('f-comentario').value = '';
+  await cargarMovimientos();
+  alert('Merma registrada y descontada del stock.');
+}
+
+function renderHistorial() {
+  const ini = document.getElementById('hist-ini').value;
+  const fin = document.getElementById('hist-fin').value;
+  const filas = MOVIMIENTOS.filter(m => {
+    const f = (m.fecha || '').slice(0, 10);
+    return (!ini || f >= ini) && (!fin || f <= fin);
+  }).sort((a, b) => b.fecha.localeCompare(a.fecha));
+
+  document.getElementById('tbody').innerHTML = filas.map(m => `
+    <tr>
+      <td>${(m.fecha || '').slice(0, 10)}</td><td>${m.nombreIngrediente}</td>
+      <td class="num">${Math.abs(m.cantidad).toLocaleString('es-CL', { maximumFractionDigits: 3 })}</td>
+      <td>${m.unidad}</td><td><span class="pill bad">${m.referencia}</span></td><td>${m.comentario || '—'}</td>
+      <td class="num">$ ${Math.round(Math.abs(m.cantidad) * (m.costoUnitario || 0)).toLocaleString('es-CL')}</td>
+    </tr>`).join('') || '<tr><td colspan="7" class="empty">Sin mermas registradas en este rango.</td></tr>';
+}
+
+function renderKPIs() {
+  const hoy = new Date();
+  const mesActual = hoy.toISOString().slice(0, 7);
+  const delMes = MOVIMIENTOS.filter(m => (m.fecha || '').slice(0, 7) === mesActual);
+  const valorMes = delMes.reduce((s, m) => s + Math.abs(m.cantidad) * (m.costoUnitario || 0), 0);
+
+  const porIngrediente = {};
+  delMes.forEach(m => { porIngrediente[m.nombreIngrediente] = (porIngrediente[m.nombreIngrediente] || 0) + Math.abs(m.cantidad) * (m.costoUnitario || 0); });
+  const top = Object.entries(porIngrediente).sort((a, b) => b[1] - a[1])[0];
+
+  document.getElementById('kpi-mes').textContent = '$ ' + Math.round(valorMes).toLocaleString('es-CL');
+  document.getElementById('kpi-top').textContent = top ? `${top[0]} ($${Math.round(top[1]).toLocaleString('es-CL')})` : '—';
+  document.getElementById('kpi-cant').textContent = delMes.length;
+}
+</script>
+</body>
+</html>

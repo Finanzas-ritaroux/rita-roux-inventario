@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Entradas de Mercadería — Inventario Rita Roux</title>
+<link rel="stylesheet" href="theme.css">
+<style>
+  .tabbtn { padding: 9px 18px; border-radius: 8px 8px 0 0; border: 1px solid var(--border); border-bottom: none; background: #f8f5f0; color: var(--mid); font-weight: 600; font-size: 13px; cursor: pointer; }
+  .tabbtn.active { background: var(--card); color: var(--dark); }
+  .item-row { display: flex; gap: 10px; align-items: flex-end; margin-bottom: 8px; flex-wrap: wrap; }
+  .sin-match { background: #fff8e1; }
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <div>
+    <div class="logo">Rita <span>Roux</span> Inventario</div>
+    <div class="subtitle">Entradas de Mercadería</div>
+  </div>
+  <div class="nav">
+    <a href="inicio.html">🏠 Inicio</a>
+    <a href="productos-recetas.html">📋 Productos y Recetas</a>
+    <a href="stock.html">📦 Stock</a>
+    <a href="entradas.html" class="cur">🚚 Entradas</a>
+    <a href="mermas.html">🗑 Mermas</a>
+    <a href="costos.html">💰 Costos</a>
+  </div>
+</header>
+
+<div class="container">
+
+  <div class="row" style="gap:0;margin-bottom:-1px">
+    <button class="tabbtn active" id="tab-factura" onclick="cambiarTab('factura')">📄 Con factura</button>
+    <button class="tabbtn" id="tab-pendiente" onclick="cambiarTab('pendiente')">📦 Sin factura (pendiente)</button>
+  </div>
+
+  <!-- ═══ CON FACTURA ═══ -->
+  <div class="panel" id="panel-factura">
+    <div class="panel-title"><span><span class="dot"></span><span id="titulo-factura">Registrar entrada con factura</span></span></div>
+
+    <div class="info-box" id="info-asociando" style="display:none">
+      Asociando factura a una entrada pendiente ya registrada — el stock de estos ítems <b>ya está sumado</b>, esto solo guarda el documento y corrige el costo si cambió.
+    </div>
+
+    <div class="row" style="margin-bottom:16px">
+      <label style="display:flex;align-items:center;gap:6px;font-weight:400"><input type="radio" name="modoFactura" value="xml" checked onchange="cambiarModoFactura()" style="width:auto"> Subir XML de factura electrónica (DTE)</label>
+      <label style="display:flex;align-items:center;gap:6px;font-weight:400"><input type="radio" name="modoFactura" value="manual" onchange="cambiarModoFactura()" style="width:auto"> Ingresar manualmente</label>
+    </div>
+
+    <div id="bloque-xml" class="row" style="margin-bottom:16px">
+      <div class="field"><label>Archivo XML (DTE)</label><input type="file" id="f-xml" accept=".xml" onchange="onXmlSeleccionado(event)"></div>
+      <span id="xml-status" style="font-size:12px;color:var(--mid)"></span>
+    </div>
+
+    <div class="row" style="margin-bottom:16px">
+      <div class="field" style="width:160px"><label>Nº Documento</label><input type="text" id="f-numdoc"></div>
+      <div class="field" style="width:150px"><label>Fecha</label><input type="date" id="f-fecha"></div>
+      <div class="field" style="flex:1;min-width:200px"><label>Proveedor</label><input type="text" id="f-proveedor"></div>
+      <div class="field" style="width:140px"><label>Total Factura</label><input type="number" id="f-total"></div>
+    </div>
+
+    <div class="field" id="bloque-adjunto" style="margin-bottom:16px;max-width:340px">
+      <label>Adjuntar foto o PDF de la factura (respaldo, queda en Drive)</label>
+      <input type="file" id="f-adjunto" accept="image/*,.pdf">
+    </div>
+
+    <div class="panel-title" style="border:none;padding:0;margin-bottom:10px">
+      <span>Ítems</span>
+      <button class="btn btn-sm btn-outline" onclick="agregarFilaFactura()">+ Agregar ítem</button>
+    </div>
+    <div id="filas-factura"></div>
+
+    <div class="info-box warn" id="warn-sin-match" style="display:none">⚠ Hay ítems sin un ingrediente del sistema seleccionado (resaltados) — revísalos antes de guardar; si no existe el ingrediente, créalo primero en Productos y Recetas.</div>
+
+    <div class="row" style="margin-top:18px;justify-content:flex-end;gap:8px">
+      <button class="btn-outline btn" onclick="limpiarFormularioFactura()">Limpiar</button>
+      <button class="btn" id="btn-guardar-factura" onclick="guardarFactura()">Guardar Entrada</button>
+    </div>
+  </div>
+
+  <!-- ═══ SIN FACTURA / PENDIENTE ═══ -->
+  <div class="panel" id="panel-pendiente" style="display:none">
+    <div class="panel-title"><span><span class="dot"></span>Mercadería sin factura todavía</span></div>
+    <div class="info-box">El stock se suma de inmediato. Cuando llegue la factura real, vuelve aquí abajo y usa "Asociar factura" en la lista de pendientes.</div>
+    <div class="row" style="margin-bottom:16px">
+      <div class="field" style="width:150px"><label>Fecha</label><input type="date" id="p-fecha"></div>
+      <div class="field" style="flex:1;min-width:200px"><label>Proveedor (si se sabe)</label><input type="text" id="p-proveedor"></div>
+    </div>
+    <div class="panel-title" style="border:none;padding:0;margin-bottom:10px">
+      <span>Ítems recibidos</span>
+      <button class="btn btn-sm btn-outline" onclick="agregarFilaPendiente()">+ Agregar ítem</button>
+    </div>
+    <div id="filas-pendiente"></div>
+    <div class="row" style="margin-top:18px;justify-content:flex-end">
+      <button class="btn" onclick="guardarPendiente()">Registrar Entrada Pendiente</button>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title"><span><span class="dot"></span>Entradas pendientes de factura (<span id="cnt-pend">0</span>)</span></div>
+    <div class="tbl-wrap">
+      <table class="tbl">
+        <thead><tr><th>Fecha</th><th>Proveedor</th><th>Ítems</th><th></th></tr></thead>
+        <tbody id="tbody-pend"><tr><td colspan="4" class="empty">Conectando…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title"><span><span class="dot"></span>Últimas facturas registradas</span></div>
+    <div class="tbl-wrap">
+      <table class="tbl">
+        <thead><tr><th>Fecha</th><th>Nº Doc</th><th>Proveedor</th><th>Tipo</th><th class="num">Total</th><th>Adjunto</th></tr></thead>
+        <tbody id="tbody-fact"><tr><td colspan="6" class="empty">Conectando…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<datalist id="dl-ingredientes"></datalist>
+<footer class="app-footer">Inventario Rita Roux Café · Fase 1: XML DTE se lee automático, fotos/PDF se adjuntan como respaldo sin lectura automática</footer>
+
+<script src="gsheets.js"></script>
+<script>
+let INGREDIENTES = {};
+let PENDIENTES = [];
+let asociandoFila = null; // fila de EntradasPendientes que se está resolviendo (o null = entrada nueva)
+
+window.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('f-fecha').value = new Date().toISOString().slice(0, 10);
+  document.getElementById('p-fecha').value = new Date().toISOString().slice(0, 10);
+  gsInit(onAuth);
+});
+
+async function onAuth() {
+  await invInitSheet();
+  INGREDIENTES = await invCargarIngredientes();
+  llenarDatalist();
+  agregarFilaFactura();
+  agregarFilaPendiente();
+  await cargarListas();
+}
+
+function llenarDatalist() {
+  document.getElementById('dl-ingredientes').innerHTML = Object.values(INGREDIENTES).map(i => `<option value="${i.id}">${i.id} — ${i.nombre}</option>`).join('');
+}
+
+function cambiarTab(tab) {
+  document.getElementById('panel-factura').style.display = tab === 'factura' ? 'block' : 'none';
+  document.getElementById('panel-pendiente').style.display = tab === 'pendiente' ? 'block' : 'none';
+  document.getElementById('tab-factura').classList.toggle('active', tab === 'factura');
+  document.getElementById('tab-pendiente').classList.toggle('active', tab === 'pendiente');
+}
+
+function cambiarModoFactura() {
+  const modo = document.querySelector('input[name=modoFactura]:checked').value;
+  document.getElementById('bloque-xml').style.display = modo === 'xml' ? 'flex' : 'none';
+}
+
+// ─── Filas de ítems (factura) ────────────────────────────────────────────────
+function agregarFilaFactura(item) {
+  const div = document.createElement('div');
+  div.className = 'item-row' + (item && item.sinMatch ? ' sin-match' : '');
+  div.innerHTML = `
+    <div class="field" style="width:150px"><label>Id Ingrediente</label><input class="it-id" list="dl-ingredientes" value="${item ? item.idIngrediente || '' : ''}" onchange="this.closest('.item-row').classList.remove('sin-match')"></div>
+    <div class="field" style="flex:1;min-width:160px"><label>Nombre (factura)</label><input class="it-name" value="${item ? item.nombre || '' : ''}"></div>
+    <div class="field" style="width:90px"><label>Cantidad</label><input class="it-qty" type="number" value="${item ? item.cantidad || '' : ''}"></div>
+    <div class="field" style="width:75px"><label>Unidad</label><input class="it-unit" value="${item ? item.unidad || '' : ''}"></div>
+    <div class="field" style="width:120px"><label>Costo Unitario</label><input class="it-costo" type="number" value="${item ? item.costoUnitario || '' : ''}"></div>
+    <span class="tag-del" onclick="this.closest('.item-row').remove()">✕</span>
+  `;
+  document.getElementById('filas-factura').appendChild(div);
+}
+
+function agregarFilaPendiente(item) {
+  const div = document.createElement('div');
+  div.className = 'item-row';
+  div.innerHTML = `
+    <div class="field" style="width:150px"><label>Id Ingrediente</label><input class="pi-id" list="dl-ingredientes" value="${item ? item.idIngrediente || '' : ''}"></div>
+    <div class="field" style="width:90px"><label>Cantidad</label><input class="pi-qty" type="number" value="${item ? item.cantidad || '' : ''}"></div>
+    <div class="field" style="width:75px"><label>Unidad</label><input class="pi-unit" value="${item ? item.unidad || '' : ''}"></div>
+    <div class="field" style="width:120px"><label>Costo estimado</label><input class="pi-costo" type="number" value="${item ? item.costoUnitario || '' : ''}"></div>
+    <span class="tag-del" onclick="this.closest('.item-row').remove()">✕</span>
+  `;
+  document.getElementById('filas-pendiente').appendChild(div);
+}
+
+// ─── Lectura de XML DTE (factura electrónica chilena) ────────────────────────
+function sugerirIngrediente(nombreProveedor) {
+  const n = (nombreProveedor || '').toLowerCase().trim();
+  if (!n) return null;
+  for (const ing of Object.values(INGREDIENTES)) {
+    const ni = ing.nombre.toLowerCase();
+    if (n.includes(ni) || ni.includes(n)) return ing;
+  }
+  return null;
+}
+
+function parseDTE(xmlText) {
+  const doc = new DOMParser().parseFromString(xmlText, 'text/xml');
+  if (doc.getElementsByTagName('parsererror').length) throw new Error('El archivo no es un XML válido.');
+  const txt = (el, tag) => { const n = el.getElementsByTagName(tag)[0]; return n ? n.textContent.trim() : ''; };
+
+  const emisor = doc.getElementsByTagName('Emisor')[0] || doc;
+  const idDoc = doc.getElementsByTagName('IdDoc')[0] || doc;
+  const totales = doc.getElementsByTagName('Totales')[0] || doc;
+  const detalles = Array.from(doc.getElementsByTagName('Detalle'));
+
+  if (!detalles.length) throw new Error('No se encontraron ítems (<Detalle>) en el XML. ¿Es un DTE de factura/boleta?');
+
+  return {
+    proveedor: txt(emisor, 'RznSoc') || txt(emisor, 'RznSocRecep') || '',
+    numeroDocumento: txt(idDoc, 'Folio') || '',
+    fecha: txt(idDoc, 'FchEmis') || '',
+    total: parseFloat(txt(totales, 'MntTotal')) || 0,
+    items: detalles.map(d => ({
+      nombre: txt(d, 'NmbItem'),
+      cantidad: parseFloat(String(txt(d, 'QtyItem')).replace(',', '.')) || 0,
+      unidad: txt(d, 'UnmdItem') || '',
+      costoUnitario: parseFloat(String(txt(d, 'PrcItem')).replace(',', '.')) || 0,
+    })),
+  };
+}
+
+function onXmlSeleccionado(ev) {
+  const file = ev.target.files[0];
+  if (!file) return;
+  const status = document.getElementById('xml-status');
+  status.textContent = 'Leyendo…';
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const dte = parseDTE(reader.result);
+      document.getElementById('f-proveedor').value = dte.proveedor;
+      document.getElementById('f-numdoc').value = dte.numeroDocumento;
+      if (dte.fecha) document.getElementById('f-fecha').value = dte.fecha.slice(0, 10);
+      document.getElementById('f-total').value = dte.total;
+      document.getElementById('filas-factura').innerHTML = '';
+      dte.items.forEach(it => {
+        const sugerido = sugerirIngrediente(it.nombre);
+        agregarFilaFactura({ idIngrediente: sugerido ? sugerido.id : '', nombre: it.nombre, cantidad: it.cantidad, unidad: it.unidad || (sugerido ? sugerido.unidad : ''), costoUnitario: it.costoUnitario, sinMatch: !sugerido });
+      });
+      revisarSinMatch();
+      status.textContent = `✓ ${dte.items.length} ítems leídos — revisa el ingrediente de cada fila antes de guardar.`;
+    } catch (e) {
+      status.textContent = '⚠ ' + e.message;
+    }
+  };
+  reader.readAsText(file);
+}
+
+function revisarSinMatch() {
+  const hay = document.querySelectorAll('#filas-factura .sin-match').length > 0;
+  document.getElementById('warn-sin-match').style.display = hay ? 'block' : 'none';
+}
+
+function limpiarFormularioFactura() {
+  asociandoFila = null;
+  document.getElementById('info-asociando').style.display = 'none';
+  document.getElementById('titulo-factura').textContent = 'Registrar entrada con factura';
+  document.getElementById('f-numdoc').value = '';
+  document.getElementById('f-proveedor').value = '';
+  document.getElementById('f-total').value = '';
+  document.getElementById('f-xml').value = '';
+  document.getElementById('f-adjunto').value = '';
+  document.getElementById('xml-status').textContent = '';
+  document.getElementById('filas-factura').innerHTML = '';
+  agregarFilaFactura();
+}
+
+// ─── Guardar entrada con factura ──────────────────────────────────────────────
+async function guardarFactura() {
+  const items = Array.from(document.querySelectorAll('#filas-factura .item-row')).map(row => ({
+    idIngrediente: row.querySelector('.it-id').value.trim(),
+    nombre: row.querySelector('.it-name').value.trim(),
+    cantidad: parseFloat(row.querySelector('.it-qty').value) || 0,
+    unidad: row.querySelector('.it-unit').value.trim(),
+    costoUnitario: parseFloat(row.querySelector('.it-costo').value) || 0,
+  })).filter(i => i.cantidad > 0);
+
+  if (!items.length) { alert('Agrega al menos un ítem con cantidad.'); return; }
+  if (items.some(i => !i.idIngrediente)) { alert('Todos los ítems necesitan un Id de Ingrediente del sistema. Si no existe, créalo primero en Productos y Recetas.'); return; }
+
+  const btn = document.getElementById('btn-guardar-factura');
+  btn.disabled = true; btn.textContent = 'Guardando…';
+  try {
+    let urlAdjunto = '';
+    const file = document.getElementById('f-adjunto').files[0];
+    if (file) {
+      urlAdjunto = await gsDriveUpload(file, file.name, 'Inventario Rita Roux - Facturas', file.type) || '';
+    }
+
+    const modo = document.querySelector('input[name=modoFactura]:checked').value;
+    const factura = {
+      id: invNuevoId('FAC'),
+      numeroDocumento: document.getElementById('f-numdoc').value.trim(),
+      fecha: document.getElementById('f-fecha').value,
+      proveedor: document.getElementById('f-proveedor').value.trim(),
+      tipo: modo === 'xml' ? 'XML DTE' : 'Manual',
+      total: parseFloat(document.getElementById('f-total').value) || 0,
+      estado: 'Registrada',
+      urlAdjunto,
+      items,
+    };
+    await invAgregarFactura(factura);
+
+    // Si NO se está asociando una entrada pendiente, esto es mercadería nueva:
+    // hay que sumar el stock ahora. Si SÍ se está asociando, el stock ya se
+    // sumó cuando se registró como pendiente — solo se guarda el documento.
+    if (asociandoFila === null) {
+      await invAgregarMovimientos(items.map(i => ({
+        fecha: new Date().toISOString(), tipo: MOV.ENTRADA, idIngrediente: i.idIngrediente, nombreIngrediente: i.nombre,
+        cantidad: Math.abs(i.cantidad), unidad: i.unidad, costoUnitario: i.costoUnitario,
+        referencia: `Factura ${factura.numeroDocumento || factura.id}`, usuario: '', comentario: factura.proveedor,
+      })));
+    } else {
+      await invResolverEntradaPendiente(asociandoFila, factura.id);
+    }
+
+    // Costo actual del ingrediente = último costo de compra registrado
+    for (const i of items) {
+      const ing = INGREDIENTES[i.idIngrediente];
+      if (ing && i.costoUnitario) { ing.costoActual = i.costoUnitario; ing.proveedor = factura.proveedor || ing.proveedor; await invGuardarIngrediente(ing); }
+    }
+
+    limpiarFormularioFactura();
+    await cargarListas();
+    alert('Entrada registrada correctamente.');
+  } catch (e) {
+    alert('Error al guardar: ' + e.message);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Guardar Entrada';
+  }
+}
+
+// ─── Guardar entrada sin factura (pendiente) ─────────────────────────────────
+async function guardarPendiente() {
+  const items = Array.from(document.querySelectorAll('#filas-pendiente .item-row')).map(row => ({
+    idIngrediente: row.querySelector('.pi-id').value.trim(),
+    cantidad: parseFloat(row.querySelector('.pi-qty').value) || 0,
+    unidad: row.querySelector('.pi-unit').value.trim(),
+    costoUnitario: parseFloat(row.querySelector('.pi-costo').value) || 0,
+  })).filter(i => i.idIngrediente && i.cantidad > 0);
+
+  if (!items.length) { alert('Agrega al menos un ítem válido (ingrediente + cantidad).'); return; }
+
+  const fecha = document.getElementById('p-fecha').value;
+  const proveedor = document.getElementById('p-proveedor').value.trim();
+  const id = invNuevoId('PEND');
+
+  await invAgregarEntradaPendiente({ id, fecha, proveedor, items });
+  await invAgregarMovimientos(items.map(i => ({
+    fecha: new Date().toISOString(), tipo: MOV.ENTRADA, idIngrediente: i.idIngrediente,
+    nombreIngrediente: (INGREDIENTES[i.idIngrediente] || {}).nombre || i.idIngrediente,
+    cantidad: Math.abs(i.cantidad), unidad: i.unidad, costoUnitario: i.costoUnitario,
+    referencia: `Pendiente factura ${id}`, usuario: '', comentario: proveedor,
+  })));
+
+  document.getElementById('filas-pendiente').innerHTML = '';
+  agregarFilaPendiente();
+  document.getElementById('p-proveedor').value = '';
+  await cargarListas();
+  alert('Entrada pendiente registrada — el stock ya quedó actualizado.');
+}
+
+function asociarFactura(fila) {
+  const pend = PENDIENTES.find(p => p.fila === fila);
+  if (!pend) return;
+  asociandoFila = fila;
+  cambiarTab('factura');
+  document.getElementById('info-asociando').style.display = 'block';
+  document.getElementById('titulo-factura').textContent = `Asociar factura a entrada pendiente del ${pend.fecha}`;
+  document.getElementById('f-proveedor').value = pend.proveedor || '';
+  document.getElementById('filas-factura').innerHTML = '';
+  pend.items.forEach(i => agregarFilaFactura({ idIngrediente: i.idIngrediente, nombre: (INGREDIENTES[i.idIngrediente] || {}).nombre || '', cantidad: i.cantidad, unidad: i.unidad, costoUnitario: i.costoUnitario }));
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ─── Listas (pendientes + facturas recientes) ────────────────────────────────
+async function cargarListas() {
+  PENDIENTES = (await invCargarEntradasPendientes()).filter(p => p.estado === 'Pendiente');
+  document.getElementById('cnt-pend').textContent = PENDIENTES.length;
+  document.getElementById('tbody-pend').innerHTML = PENDIENTES.map(p => `
+    <tr>
+      <td>${p.fecha}</td><td>${p.proveedor || '—'}</td>
+      <td>${p.items.map(i => `${(INGREDIENTES[i.idIngrediente] || {}).nombre || i.idIngrediente} (${i.cantidad})`).join(', ')}</td>
+      <td><button class="btn btn-sm" onclick="asociarFactura(${p.fila})">Asociar factura</button></td>
+    </tr>`).join('') || '<tr><td colspan="4" class="empty">No hay entradas pendientes de factura.</td></tr>';
+
+  const facturas = (await invCargarFacturas()).slice(-15).reverse();
+  document.getElementById('tbody-fact').innerHTML = facturas.map(f => `
+    <tr>
+      <td>${f.fecha}</td><td>${f.numeroDocumento || '—'}</td><td>${f.proveedor}</td><td><span class="pill mid">${f.tipo}</span></td>
+      <td class="num">$ ${Math.round(f.total).toLocaleString('es-CL')}</td>
+      <td>${f.urlAdjunto ? `<a href="${f.urlAdjunto}" target="_blank">Ver</a>` : '—'}</td>
+    </tr>`).join('') || '<tr><td colspan="6" class="empty">Sin facturas registradas todavía.</td></tr>';
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Inicio — Inventario Rita Roux</title>
+<link rel="stylesheet" href="theme.css">
+<style>
+  .quick-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap: 14px; }
+  .quick-card { display: block; background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 18px; text-decoration: none; color: var(--dark); transition: box-shadow .15s, border-color .15s; }
+  .quick-card:hover { box-shadow: 0 4px 14px rgba(0,0,0,.08); border-color: var(--sage); }
+  .quick-card .ic { font-size: 22px; margin-bottom: 8px; }
+  .quick-card .ti { font-weight: 700; font-size: 14px; margin-bottom: 4px; }
+  .quick-card .de { font-size: 12px; color: var(--light); line-height: 1.4; }
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <div>
+    <div class="logo">Rita <span>Roux</span> Inventario</div>
+    <div class="subtitle">Dashboard</div>
+  </div>
+  <div class="nav">
+    <a href="inicio.html" class="cur">🏠 Inicio</a>
+    <a href="productos-recetas.html">📋 Productos y Recetas</a>
+    <a href="stock.html">📦 Stock</a>
+    <a href="entradas.html">🚚 Entradas</a>
+    <a href="mermas.html">🗑 Mermas</a>
+    <a href="costos.html">💰 Costos</a>
+  </div>
+</header>
+
+<div class="container">
+
+  <div class="info-box">
+    <b>Sistema de Inventario — Fase 1.</b> Lleva su propio registro de stock en Google Sheets (independiente del módulo de inventario de Toteat, que hoy no tiene compras ni conteos físicos registrados). Toteat solo se usa para leer ventas y descontar ingredientes según receta.
+  </div>
+
+  <div class="cards">
+    <div class="card good"><div class="label">Valor total inventario</div><div class="value" id="kpi-valor">—</div></div>
+    <div class="card bad"><div class="label">Ingredientes bajo mínimo</div><div class="value" id="kpi-bajo">—</div></div>
+    <div class="card warn"><div class="label">Merma este mes</div><div class="value" id="kpi-merma">—</div></div>
+    <div class="card accent"><div class="label">Entradas pendientes de factura</div><div class="value" id="kpi-pend">—</div></div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title"><span><span class="dot"></span>⚠ Alertas de stock bajo</span></div>
+    <div class="tbl-wrap">
+      <table class="tbl">
+        <thead><tr><th>Ingrediente</th><th class="num">Stock Actual</th><th>Unidad</th><th class="num">Mínimo</th><th>Estado</th></tr></thead>
+        <tbody id="tbody-alertas"><tr><td colspan="5" class="empty">Conectando…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="panel-title" style="border:none;margin:6px 0 14px"><span><span class="dot"></span>Accesos rápidos</span></div>
+  <div class="quick-grid" style="margin-bottom:24px">
+    <a class="quick-card" href="productos-recetas.html">
+      <div class="ic">📋</div><div class="ti">Productos y Recetas</div>
+      <div class="de">Crea, edita y elimina productos con su lista de ingredientes por porción.</div>
+    </a>
+    <a class="quick-card" href="stock.html">
+      <div class="ic">📦</div><div class="ti">Stock</div>
+      <div class="de">Stock actual por ingrediente, umbrales mínimos y sincronización de ventas Toteat.</div>
+    </a>
+    <a class="quick-card" href="entradas.html">
+      <div class="ic">🚚</div><div class="ti">Entradas de Mercadería</div>
+      <div class="de">Registra compras con factura (XML o manual) o mercadería sin factura todavía.</div>
+    </a>
+    <a class="quick-card" href="mermas.html">
+      <div class="ic">🗑</div><div class="ti">Mermas</div>
+      <div class="de">Registra pérdidas, roturas o caducidad con motivo — ajusta el stock al instante.</div>
+    </a>
+    <a class="quick-card" href="costos.html">
+      <div class="ic">💰</div><div class="ti">Costos y Márgenes</div>
+      <div class="de">Costo por producto, margen vs. precio de Toteat y evolución de costo de insumos.</div>
+    </a>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title"><span><span class="dot"></span>Últimos movimientos de stock</span></div>
+    <div class="tbl-wrap">
+      <table class="tbl">
+        <thead><tr><th>Fecha</th><th>Tipo</th><th>Ingrediente</th><th class="num">Cantidad</th><th>Referencia</th></tr></thead>
+        <tbody id="tbody-mov"><tr><td colspan="5" class="empty">Conectando…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<footer class="app-footer">Inventario Rita Roux Café · datos en Google Sheets · Fase 2 (próxima): conteo físico, lista de compras, proveedores · Fase 3: eventos, lectura IA de boletas</footer>
+
+<script src="gsheets.js"></script>
+<script>
+const TIPO_LABEL = { ENTRADA: '🚚 Entrada', VENTA: '🧾 Venta', MERMA: '🗑 Merma', AJUSTE_CONTEO: '⚖ Ajuste', SALIDA_EVENTO: '🎉 Evento' };
+const TIPO_PILL  = { ENTRADA: 'ok', VENTA: 'mid', MERMA: 'bad', AJUSTE_CONTEO: 'warn', SALIDA_EVENTO: 'mid' };
+
+window.addEventListener('DOMContentLoaded', () => gsInit(onAuth));
+
+async function onAuth() {
+  await invInitSheet();
+  const recetas = await invCargarRecetas();
+  const [ingredientes, movimientos, pendientes] = await Promise.all([
+    invSembrarIngredientesSiVacio(recetas),
+    invCargarMovimientos(),
+    invCargarEntradasPendientes(),
+  ]);
+
+  renderKPIs(ingredientes, movimientos, pendientes);
+  renderAlertas(ingredientes, movimientos);
+  renderMovimientos(movimientos);
+}
+
+function estado(stock, minimo) {
+  if (!minimo) return { cls: 'mid', txt: 'Sin mínimo' };
+  if (stock <= 0) return { cls: 'bad', txt: 'Agotado' };
+  if (stock < minimo) return { cls: 'bad', txt: 'Bajo mínimo' };
+  if (stock < minimo * 1.3) return { cls: 'warn', txt: 'Cerca del mínimo' };
+  return { cls: 'ok', txt: 'OK' };
+}
+
+function renderKPIs(ingredientes, movimientos, pendientes) {
+  const stock = invCalcularStock(movimientos);
+  const valor = Object.values(ingredientes).reduce((s, i) => s + (stock[i.id] || 0) * (i.costoActual || 0), 0);
+  const bajo = Object.values(ingredientes).filter(i => estado(stock[i.id] || 0, i.stockMinimo).cls === 'bad').length;
+
+  const mesActual = new Date().toISOString().slice(0, 7);
+  const mermaMes = movimientos.filter(m => m.tipo === 'MERMA' && (m.fecha || '').slice(0, 7) === mesActual)
+    .reduce((s, m) => s + Math.abs(m.cantidad) * (m.costoUnitario || 0), 0);
+
+  document.getElementById('kpi-valor').textContent = '$ ' + Math.round(valor).toLocaleString('es-CL');
+  document.getElementById('kpi-bajo').textContent = bajo;
+  document.getElementById('kpi-merma').textContent = '$ ' + Math.round(mermaMes).toLocaleString('es-CL');
+  document.getElementById('kpi-pend').textContent = pendientes.filter(p => p.estado === 'Pendiente').length;
+}
+
+function renderAlertas(ingredientes, movimientos) {
+  const stock = invCalcularStock(movimientos);
+  const filas = Object.values(ingredientes)
+    .map(i => ({ ...i, stock: stock[i.id] || 0, est: estado(stock[i.id] || 0, i.stockMinimo) }))
+    .filter(i => i.est.cls === 'bad' || i.est.cls === 'warn')
+    .sort((a, b) => a.stock - b.stock);
+
+  document.getElementById('tbody-alertas').innerHTML = filas.map(i => `
+    <tr>
+      <td>${i.nombre}</td>
+      <td class="num">${i.stock.toLocaleString('es-CL', { maximumFractionDigits: 3 })}</td>
+      <td>${i.unidad}</td>
+      <td class="num">${i.stockMinimo || '—'}</td>
+      <td><span class="pill ${i.est.cls}">${i.est.txt}</span></td>
+    </tr>`).join('') || '<tr><td colspan="5" class="empty">Sin alertas — todo el stock está sobre el mínimo. 🎉</td></tr>';
+}
+
+function renderMovimientos(movimientos) {
+  const ultimos = [...movimientos].sort((a, b) => b.fecha.localeCompare(a.fecha)).slice(0, 12);
+  document.getElementById('tbody-mov').innerHTML = ultimos.map(m => `
+    <tr>
+      <td>${(m.fecha || '').slice(0, 10)}</td>
+      <td><span class="pill ${TIPO_PILL[m.tipo] || 'mid'}">${TIPO_LABEL[m.tipo] || m.tipo}</span></td>
+      <td>${m.nombreIngrediente}</td>
+      <td class="num">${m.cantidad > 0 ? '+' : ''}${m.cantidad.toLocaleString('es-CL', { maximumFractionDigits: 3 })}</td>
+      <td>${m.referencia || '—'}</td>
+    </tr>`).join('') || '<tr><td colspan="5" class="empty">Sin movimientos todavía.</td></tr>';
+}
+</script>
+</body>
+</html>

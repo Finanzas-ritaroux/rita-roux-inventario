@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Costos y Márgenes — Inventario Rita Roux</title>
+<link rel="stylesheet" href="theme.css">
+</head>
+<body>
+
+<header class="app-header">
+  <div>
+    <div class="logo">Rita <span>Roux</span> Inventario</div>
+    <div class="subtitle">Costos y Márgenes</div>
+  </div>
+  <div class="nav">
+    <a href="inicio.html">🏠 Inicio</a>
+    <a href="productos-recetas.html">📋 Productos y Recetas</a>
+    <a href="stock.html">📦 Stock</a>
+    <a href="entradas.html">🚚 Entradas</a>
+    <a href="mermas.html">🗑 Mermas</a>
+    <a href="costos.html" class="cur">💰 Costos</a>
+  </div>
+</header>
+
+<div class="container">
+
+  <div class="cards">
+    <div class="card accent"><div class="label">Costo de ventas (período)</div><div class="value" id="kpi-costo">—</div></div>
+    <div class="card good"><div class="label">Margen bruto global</div><div class="value" id="kpi-margen">—</div></div>
+    <div class="card"><div class="label">Productos con precio Toteat</div><div class="value" id="kpi-precios">—</div></div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title"><span><span class="dot"></span>Costo de ventas del período</span></div>
+    <div class="row">
+      <div class="field"><label>Desde</label><input type="date" id="ini"></div>
+      <div class="field"><label>Hasta</label><input type="date" id="fin"></div>
+      <button class="btn-outline btn" onclick="renderCostoVentas()">Calcular</button>
+      <button class="btn" onclick="cargarPreciosToteat()" id="btn-precios">Cargar precios desde Toteat</button>
+      <span id="precios-status" style="font-size:12px;color:var(--mid)"></span>
+    </div>
+    <div class="info-box" style="margin-top:14px">Calculado desde el costo vigente al momento de cada venta (ledger de Movimientos), no desde el costo de hoy — así no se distorsiona si un proveedor subió precios después.</div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">
+      <span><span class="dot"></span>Costo y margen por producto</span>
+      <input type="text" id="buscar" placeholder="Buscar producto…" style="width:220px" oninput="renderProductos()">
+    </div>
+    <div class="tbl-wrap">
+      <table class="tbl">
+        <thead><tr><th>Id</th><th>Producto</th><th class="num">Costo Receta</th><th class="num">Precio Venta (Toteat)</th><th class="num">Margen $</th><th class="num">Margen %</th></tr></thead>
+        <tbody id="tbody-prod"><tr><td colspan="6" class="empty">Conectando…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title"><span><span class="dot"></span>Evolución de costo por ingrediente</span></div>
+    <div class="row" style="margin-bottom:14px">
+      <div class="field" style="width:260px"><label>Ingrediente</label><select id="sel-ing" onchange="renderEvolucion()"></select></div>
+    </div>
+    <div class="tbl-wrap">
+      <table class="tbl">
+        <thead><tr><th>Fecha</th><th>Referencia</th><th class="num">Costo Unitario</th><th class="num">Variación vs. anterior</th></tr></thead>
+        <tbody id="tbody-evol"><tr><td colspan="4" class="empty">Selecciona un ingrediente.</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<footer class="app-footer">Inventario Rita Roux Café · márgenes calculados con precio de venta oficial de Toteat (IVA incluido)</footer>
+
+<script src="gsheets.js"></script>
+<script>
+let RECETAS = {};
+let INGREDIENTES = {};
+let MOVIMIENTOS = [];
+let PRECIOS = {}; // id producto -> price (Toteat)
+
+window.addEventListener('DOMContentLoaded', () => {
+  const hoy = new Date();
+  document.getElementById('fin').value = hoy.toISOString().slice(0, 10);
+  const hace30 = new Date(hoy); hace30.setDate(hoy.getDate() - 30);
+  document.getElementById('ini').value = hace30.toISOString().slice(0, 10);
+  gsInit(onAuth);
+});
+
+async function onAuth() {
+  await invInitSheet();
+  RECETAS = await invCargarRecetas();
+  INGREDIENTES = await invSembrarIngredientesSiVacio(RECETAS);
+  MOVIMIENTOS = await invCargarMovimientos();
+  llenarSelectIngredientes();
+  renderProductos();
+  renderCostoVentas();
+}
+
+function costoReceta(prod) {
+  return (prod.ing || []).reduce((s, i) => s + (parseFloat(String(i.qty).replace(',', '.')) || 0) * (i.costoKilo || 0), 0);
+}
+
+async function cargarPreciosToteat() {
+  const btn = document.getElementById('btn-precios');
+  const status = document.getElementById('precios-status');
+  btn.disabled = true; status.textContent = 'Consultando catálogo de Toteat…';
+  try {
+    const res = await fetch(`${TOTEAT_PROXY_BASE}/api/products`);
+    const json = await res.json();
+    if (!json.ok) throw new Error(json.msg || 'Error de Toteat');
+    PRECIOS = {};
+    (json.data || []).forEach(p => { if (!p.isModifier) PRECIOS[String(p.id)] = p.price; });
+    status.textContent = `✓ ${Object.keys(PRECIOS).length} precios cargados.`;
+    renderProductos();
+  } catch (e) {
+    status.textContent = '⚠ ' + e.message;
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function renderProductos() {
+  const q = (document.getElementById('buscar').value || '').toLowerCase();
+  const filas = Object.entries(RECETAS)
+    .filter(([pid, p]) => !q || pid.toLowerCase().includes(q) || (p.name || '').toLowerCase().includes(q))
+    .map(([pid, p]) => {
+      const costo = costoReceta(p);
+      const precio = PRECIOS[pid];
+      const margenP = precio ? precio - costo : null;
+      const margenPct = precio ? (margenP / precio * 100) : null;
+      return { pid, nombre: p.name, costo, precio, margenP, margenPct };
+    })
+    .sort((a, b) => (b.margenPct ?? -999) - (a.margenPct ?? -999));
+
+  document.getElementById('kpi-precios').textContent = Object.keys(PRECIOS).length || '—';
+
+  const conPrecio = filas.filter(f => f.precio);
+  if (conPrecio.length) {
+    const totalPrecio = conPrecio.reduce((s, f) => s + f.precio, 0);
+    const totalMargen = conPrecio.reduce((s, f) => s + f.margenP, 0);
+    document.getElementById('kpi-margen').textContent = (totalMargen / totalPrecio * 100).toFixed(1) + '%';
+  }
+
+  document.getElementById('tbody-prod').innerHTML = filas.map(f => `
+    <tr>
+      <td>${f.pid}</td><td>${f.nombre}</td>
+      <td class="num">$ ${Math.round(f.costo).toLocaleString('es-CL')}</td>
+      <td class="num">${f.precio ? '$ ' + f.precio.toLocaleString('es-CL') : '—'}</td>
+      <td class="num">${f.margenP != null ? '$ ' + Math.round(f.margenP).toLocaleString('es-CL') : '—'}</td>
+      <td class="num">${f.margenPct != null ? '<span class="pill ' + (f.margenPct >= 70 ? 'ok' : f.margenPct >= 50 ? 'warn' : 'bad') + '">' + f.margenPct.toFixed(1) + '%</span>' : '—'}</td>
+    </tr>`).join('') || '<tr><td colspan="6" class="empty">Sin productos.</td></tr>';
+}
+
+function renderCostoVentas() {
+  const ini = document.getElementById('ini').value;
+  const fin = document.getElementById('fin').value;
+  const ventas = MOVIMIENTOS.filter(m => {
+    if (m.tipo !== MOV.VENTA) return false;
+    const f = (m.fecha || '').slice(0, 10);
+    return (!ini || f >= ini) && (!fin || f <= fin);
+  });
+  const total = ventas.reduce((s, m) => s + Math.abs(m.cantidad) * (m.costoUnitario || 0), 0);
+  document.getElementById('kpi-costo').textContent = '$ ' + Math.round(total).toLocaleString('es-CL');
+}
+
+function llenarSelectIngredientes() {
+  const sel = document.getElementById('sel-ing');
+  sel.innerHTML = '<option value="">— Selecciona —</option>' + Object.values(INGREDIENTES).sort((a, b) => a.nombre.localeCompare(b.nombre)).map(i => `<option value="${i.id}">${i.nombre}</option>`).join('');
+}
+
+function renderEvolucion() {
+  const idIng = document.getElementById('sel-ing').value;
+  if (!idIng) { document.getElementById('tbody-evol').innerHTML = '<tr><td colspan="4" class="empty">Selecciona un ingrediente.</td></tr>'; return; }
+  const hist = MOVIMIENTOS.filter(m => m.idIngrediente === idIng && m.tipo === MOV.ENTRADA && m.costoUnitario)
+    .sort((a, b) => a.fecha.localeCompare(b.fecha));
+
+  let anterior = null;
+  const filas = hist.map(m => {
+    const variacion = anterior ? ((m.costoUnitario - anterior) / anterior * 100) : null;
+    anterior = m.costoUnitario;
+    return { ...m, variacion };
+  });
+
+  document.getElementById('tbody-evol').innerHTML = filas.map(m => `
+    <tr>
+      <td>${(m.fecha || '').slice(0, 10)}</td><td>${m.referencia}</td>
+      <td class="num">$ ${Math.round(m.costoUnitario).toLocaleString('es-CL')}</td>
+      <td class="num">${m.variacion != null ? (m.variacion >= 0 ? '+' : '') + m.variacion.toFixed(1) + '%' : '—'}</td>
+    </tr>`).join('') || '<tr><td colspan="4" class="empty">Sin entradas con costo registrado para este ingrediente todavía.</td></tr>';
+}
+</script>
+</body>
+</html>

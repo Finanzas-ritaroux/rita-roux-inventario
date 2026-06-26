@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Productos y Recetas — Inventario Rita Roux</title>
+<link rel="stylesheet" href="theme.css">
+</head>
+<body>
+
+<header class="app-header">
+  <div>
+    <div class="logo">Rita <span>Roux</span> Inventario</div>
+    <div class="subtitle">Productos y Recetas</div>
+  </div>
+  <div class="nav">
+    <a href="inicio.html">🏠 Inicio</a>
+    <a href="productos-recetas.html" class="cur">📋 Productos y Recetas</a>
+    <a href="stock.html">📦 Stock</a>
+    <a href="entradas.html">🚚 Entradas</a>
+    <a href="mermas.html">🗑 Mermas</a>
+    <a href="costos.html">💰 Costos</a>
+  </div>
+</header>
+
+<div class="container">
+  <div class="info-box">
+    Esta pantalla edita la misma hoja <b>Recetas</b> que usa el botón "📦 Productos y Recetas" del Reporte de Ventas (Toteat) — un cambio aquí se ve también ahí, y viceversa. Cada producto vendido tiene su lista de ingredientes con cantidad por porción; esa lista es la que usa la Sincronización de Ventas para descontar stock automáticamente.
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">
+      <span><span class="dot"></span>Productos (<span id="cnt-prod">0</span>)</span>
+      <div class="row" style="gap:8px">
+        <input type="text" id="buscar" placeholder="Buscar producto o ingrediente…" style="width:260px" oninput="renderTabla()">
+        <button class="btn" onclick="abrirNuevoProducto()">+ Nuevo Producto</button>
+      </div>
+    </div>
+    <div class="tbl-wrap">
+      <table class="tbl">
+        <thead><tr>
+          <th>Id</th><th>Producto</th><th class="num">Ingredientes</th><th class="num">Costo Receta</th><th></th>
+        </tr></thead>
+        <tbody id="tbody-prod"><tr><td colspan="5" class="empty">Conectando…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL PRODUCTO -->
+<div class="modal-overlay" id="modal" onclick="if(event.target===this) cerrarModal()">
+  <div class="modal wide">
+    <div class="modal-header">
+      <div>
+        <h3 id="modal-titulo">Producto</h3>
+      </div>
+      <button class="close-btn" onclick="cerrarModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="row" style="margin-bottom:16px">
+        <div class="field" style="width:140px"><label>Id Producto</label><input id="f-pid" type="text"></div>
+        <div class="field" style="flex:1;min-width:220px"><label>Nombre Producto</label><input id="f-pname" type="text"></div>
+      </div>
+
+      <div class="panel-title" style="border:none;padding:0;margin-bottom:10px">
+        <span>Ingredientes</span>
+        <button class="btn btn-sm btn-outline" onclick="agregarFilaIngrediente()">+ Agregar ingrediente</button>
+      </div>
+      <div id="filas-ing"></div>
+
+      <div class="row" style="margin-top:20px;justify-content:space-between">
+        <button class="btn btn-danger btn-sm" id="btn-eliminar" onclick="eliminarProducto()">Eliminar producto</button>
+        <div class="row" style="gap:8px">
+          <button class="btn-outline btn" onclick="cerrarModal()">Cancelar</button>
+          <button class="btn" onclick="guardarProducto()">Guardar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<datalist id="dl-ingredientes"></datalist>
+
+<footer class="app-footer">Inventario Rita Roux Café · datos en Google Sheets · ventas vía Toteat</footer>
+
+<script src="gsheets.js"></script>
+<script>
+let RECETAS = {};
+let INGREDIENTES = {};
+let pidEditando = null; // null = nuevo producto
+
+window.addEventListener('DOMContentLoaded', () => gsInit(onAuth));
+
+async function onAuth() {
+  await invInitSheet();
+  await cargarTodo();
+}
+
+async function cargarTodo() {
+  RECETAS = await invCargarRecetas();
+  INGREDIENTES = await invSembrarIngredientesSiVacio(RECETAS);
+  llenarDatalist();
+  renderTabla();
+}
+
+function llenarDatalist() {
+  const dl = document.getElementById('dl-ingredientes');
+  dl.innerHTML = Object.values(INGREDIENTES).map(i => `<option value="${i.id}">${i.id} — ${i.nombre}</option>`).join('');
+}
+
+function costoReceta(prod) {
+  return (prod.ing || []).reduce((s, i) => s + (parseFloat(String(i.qty).replace(',', '.')) || 0) * (i.costoKilo || 0), 0);
+}
+
+function renderTabla() {
+  const q = (document.getElementById('buscar').value || '').toLowerCase();
+  const entries = Object.entries(RECETAS).filter(([pid, p]) => {
+    if (!q) return true;
+    if (pid.toLowerCase().includes(q) || (p.name || '').toLowerCase().includes(q)) return true;
+    return (p.ing || []).some(i => (i.name || '').toLowerCase().includes(q));
+  }).sort((a, b) => (a[1].name || '').localeCompare(b[1].name || ''));
+
+  document.getElementById('cnt-prod').textContent = Object.keys(RECETAS).length;
+  document.getElementById('tbody-prod').innerHTML = entries.map(([pid, p]) => `
+    <tr onclick="abrirProducto('${pid}')">
+      <td>${pid}</td>
+      <td>${p.name || ''}</td>
+      <td class="num">${(p.ing || []).length}</td>
+      <td class="num">$ ${Math.round(costoReceta(p)).toLocaleString('es-CL')}</td>
+      <td></td>
+    </tr>`).join('') || '<tr><td colspan="5" class="empty">Sin productos. Crea el primero con "+ Nuevo Producto".</td></tr>';
+}
+
+function abrirNuevoProducto() {
+  pidEditando = null;
+  document.getElementById('modal-titulo').textContent = 'Nuevo Producto';
+  document.getElementById('f-pid').value = '';
+  document.getElementById('f-pid').disabled = false;
+  document.getElementById('f-pname').value = '';
+  document.getElementById('btn-eliminar').style.display = 'none';
+  document.getElementById('filas-ing').innerHTML = '';
+  agregarFilaIngrediente();
+  document.getElementById('modal').classList.add('open');
+}
+
+function abrirProducto(pid) {
+  pidEditando = pid;
+  const p = RECETAS[pid];
+  document.getElementById('modal-titulo').textContent = p.name || pid;
+  document.getElementById('f-pid').value = pid;
+  document.getElementById('f-pid').disabled = true;
+  document.getElementById('f-pname').value = p.name || '';
+  document.getElementById('btn-eliminar').style.display = 'inline-block';
+  document.getElementById('filas-ing').innerHTML = '';
+  (p.ing || []).forEach(i => agregarFilaIngrediente(i));
+  if (!(p.ing || []).length) agregarFilaIngrediente();
+  document.getElementById('modal').classList.add('open');
+}
+
+function cerrarModal() { document.getElementById('modal').classList.remove('open'); }
+
+function agregarFilaIngrediente(ing) {
+  const div = document.createElement('div');
+  div.className = 'row ing-row';
+  div.style = 'margin-bottom:8px;align-items:flex-end';
+  div.innerHTML = `
+    <div class="field" style="width:160px"><label>Id Ingrediente</label><input class="ing-id" list="dl-ingredientes" value="${ing ? ing.id : ''}" onchange="autocompletarIngrediente(this)"></div>
+    <div class="field" style="flex:1;min-width:160px"><label>Nombre</label><input class="ing-name" value="${ing ? ing.name : ''}"></div>
+    <div class="field" style="width:90px"><label>Cantidad</label><input class="ing-qty" value="${ing ? ing.qty : ''}"></div>
+    <div class="field" style="width:75px"><label>Unidad</label><input class="ing-unit" value="${ing ? ing.unit : ''}"></div>
+    <div class="field" style="width:110px"><label>Costo/Kilo</label><input class="ing-costo" type="number" value="${ing ? ing.costoKilo || '' : ''}"></div>
+    <div class="field" style="width:140px"><label>Proveedor</label><input class="ing-prov" value="${ing ? ing.proveedor || '' : ''}"></div>
+    <span class="tag-del" title="Quitar" onclick="this.closest('.ing-row').remove()">✕</span>
+  `;
+  document.getElementById('filas-ing').appendChild(div);
+}
+
+function autocompletarIngrediente(input) {
+  const ing = INGREDIENTES[input.value.trim()];
+  if (!ing) return;
+  const row = input.closest('.ing-row');
+  if (!row.querySelector('.ing-name').value) row.querySelector('.ing-name').value = ing.nombre;
+  if (!row.querySelector('.ing-unit').value) row.querySelector('.ing-unit').value = ing.unidad;
+  if (!row.querySelector('.ing-costo').value) row.querySelector('.ing-costo').value = ing.costoActual || '';
+  if (!row.querySelector('.ing-prov').value) row.querySelector('.ing-prov').value = ing.proveedor || '';
+}
+
+async function guardarProducto() {
+  const pid = document.getElementById('f-pid').value.trim();
+  const pname = document.getElementById('f-pname').value.trim();
+  if (!pid || !pname) { alert('Id y Nombre de producto son obligatorios.'); return; }
+  if (!pidEditando && RECETAS[pid]) { alert('Ya existe un producto con ese Id.'); return; }
+
+  const ing = Array.from(document.querySelectorAll('#filas-ing .ing-row')).map(row => ({
+    id: row.querySelector('.ing-id').value.trim(),
+    name: row.querySelector('.ing-name').value.trim(),
+    qty: row.querySelector('.ing-qty').value.trim(),
+    unit: row.querySelector('.ing-unit').value.trim(),
+    costoKilo: parseFloat(row.querySelector('.ing-costo').value) || 0,
+    proveedor: row.querySelector('.ing-prov').value.trim(),
+  })).filter(i => i.id);
+
+  if (pidEditando && pidEditando !== pid) delete RECETAS[pidEditando];
+  RECETAS[pid] = { name: pname, ing };
+
+  await invGuardarRecetas(RECETAS);
+  await cargarTodo();
+  cerrarModal();
+}
+
+async function eliminarProducto() {
+  if (!pidEditando) return;
+  if (!confirm(`¿Eliminar "${RECETAS[pidEditando].name}" y su receta? Esta acción no se puede deshacer.`)) return;
+  delete RECETAS[pidEditando];
+  await invGuardarRecetas(RECETAS);
+  await cargarTodo();
+  cerrarModal();
+}
+</script>
+</body>
+</html>
