@@ -348,9 +348,12 @@ window.addEventListener('DOMContentLoaded', async () => {
   cargarIngredientes();
 });
 
-async function cargarIngredientes() {
-  const r = await api('getIngredientes');
-  ingFlat = (r.data || []).map(row => ({
+// Clave y TTL del caché local (1 hora — los ingredientes no cambian a cada rato)
+const CACHE_KEY = 'rr_ings_v2';
+const CACHE_TTL = 60 * 60 * 1000;
+
+function procesarIngredientes(data) {
+  ingFlat = (data || []).map(row => ({
     id: row[0], nombre: row[1], unidad: row[2],
     stockMinimo: +row[3]||0, costoActual: +row[4]||0,
     proveedor: row[5]||'Sin proveedor', seguimiento: row[6]||'NORMAL',
@@ -358,6 +361,44 @@ async function cargarIngredientes() {
   })).filter(i => i.seguimiento !== 'NO_CONTAR');
   document.getElementById('msg-carga').style.display = 'none';
   actualizarFiltroEstacion();
+}
+
+async function cargarIngredientes() {
+  // 1) Intenta mostrar desde caché local primero — aparece INSTANTÁNEO
+  try {
+    const cached = JSON.parse(localStorage.getItem(CACHE_KEY) || 'null');
+    if (cached && Date.now() - cached.ts < CACHE_TTL && cached.data?.length) {
+      procesarIngredientes(cached.data);
+      // Actualiza el caché en segundo plano sin bloquear la UI
+      api('getIngredientes').then(r => {
+        if (r.ok && r.data?.length) {
+          localStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), data: r.data }));
+        }
+      }).catch(() => {});
+      return; // ya mostrado desde caché, no esperar la red
+    }
+  } catch(e) {}
+
+  // 2) Sin caché: muestra "Cargando…" con timeout de 12 seg
+  const msgEl = document.getElementById('msg-carga');
+  msgEl.style.display = 'block';
+  msgEl.textContent = 'Cargando productos…';
+
+  const timeout = new Promise(resolve =>
+    setTimeout(() => resolve({ ok: false, _timeout: true }), 12000)
+  );
+  const r = await Promise.race([api('getIngredientes'), timeout]);
+
+  if (r._timeout || !r.ok) {
+    msgEl.innerHTML = '⚠ No se pudo cargar.<br>' +
+      '<button type="button" onclick="cargarIngredientes()" ' +
+      'style="margin-top:10px;background:#3a3a3a;border:none;color:#fff;padding:9px 18px;border-radius:8px;cursor:pointer;font-family:inherit">Reintentar</button>';
+    return;
+  }
+
+  // 3) Guarda en caché y muestra
+  try { localStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), data: r.data })); } catch(e) {}
+  procesarIngredientes(r.data);
 }
 
 // Filtra los ingredientes visibles según la estación de quien está usando la app
