@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Triangulación de Inventario — Inventario Rita Roux</title>
+<link rel="stylesheet" href="theme.css">
+<style>
+  /* ── Semáforo de estado ── */
+  .s-ok   { color:#4caf7d; font-weight:700; }
+  .s-warn { color:#f0a500; font-weight:700; }
+  .s-bad  { color:#e05252; font-weight:700; }
+  .s-nd   { color:#888; }
+
+  /* ── Celdas numéricas con alineación y color ── */
+  .var-pos { color:#4caf7d; }
+  .var-neg { color:#e05252; }
+
+  /* ── Barra de progreso de varianza ── */
+  .var-bar-wrap { width:80px; background:#333; border-radius:4px; height:6px; display:inline-block; vertical-align:middle; margin-left:6px; }
+  .var-bar { height:6px; border-radius:4px; }
+  .bar-ok   { background:#4caf7d; }
+  .bar-warn { background:#f0a500; }
+  .bar-bad  { background:#e05252; }
+
+  .legend { display:flex; gap:18px; flex-wrap:wrap; font-size:11.5px; margin-bottom:16px; }
+  .legend-item { display:flex; align-items:center; gap:6px; }
+  .legend-dot { width:10px; height:10px; border-radius:50%; }
+
+  details.panel summary { cursor:pointer; font-weight:700; font-size:13px; }
+
+  /* ── Filtros ── */
+  .filter-bar { display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end; margin-bottom:18px; }
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <div>
+    <div class="logo">Rita <span>Roux</span> Inventario</div>
+    <div class="subtitle">Triangulación de Inventario</div>
+  </div>
+  <div class="nav">
+    <a href="inicio.html">🏠 Inicio</a>
+    <a href="stock.html">📦 Stock</a>
+    <a href="entradas.html">🚚 Entradas</a>
+    <a href="lista-compras.html">🛒 Compras</a>
+    <a href="mermas.html">🗑 Mermas</a>
+    <a href="triangulacion.html" class="cur">🔺 Triangulación</a>
+    <a href="edicion-datos.html">✏️ Edición de Datos</a>
+  </div>
+</header>
+
+<div class="container">
+
+  <div class="info-box">
+    <b>¿Qué es la triangulación?</b> Compara tres fuentes: (A) lo que ingresaron los trabajadores, (B) lo que debería haber según las ventas de Toteat (consumo teórico), y (C) el conteo físico de Joshua. Cuando C difiere de B más allá del umbral de tolerancia, hay una discrepancia. Las unidades en <b>kg/L/g</b> tienen margen de error natural (±5%), mientras que las unidades enteras (UN, pza) no deberían tener diferencia.
+  </div>
+
+  <div class="cards">
+    <div class="card bad"><div class="label">Discrepancias activas</div><div class="value" id="kpi-disc">—</div><div class="sub">stock calculado vs. conteo físico</div></div>
+    <div class="card warn"><div class="label">Ingredientes a revisar</div><div class="value" id="kpi-warn">—</div><div class="sub">dentro del rango de alerta</div></div>
+    <div class="card good"><div class="label">Ingredientes OK</div><div class="value" id="kpi-ok">—</div></div>
+    <div class="card accent"><div class="label">Sin contar todavía</div><div class="value" id="kpi-nd">—</div><div class="sub">no tienen conteo físico</div></div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title"><span><span class="dot"></span>Filtros y opciones</span></div>
+    <div class="filter-bar">
+      <div class="field"><label>Buscar ingrediente</label><input type="text" id="buscar" style="width:220px" oninput="renderTabla()" placeholder="Nombre o Id…"></div>
+      <div class="field"><label>Mostrar</label>
+        <select id="filtro-estado" onchange="renderTabla()">
+          <option value="TODOS">Todos</option>
+          <option value="Discrepancia">Solo discrepancias</option>
+          <option value="Revisar">Discrepancias + a revisar</option>
+          <option value="OK">Solo OK</option>
+          <option value="ND">Sin conteo físico</option>
+        </select>
+      </div>
+      <div class="field"><label>Estación</label>
+        <select id="filtro-est" onchange="renderTabla()">
+          <option value="TODOS">Todas</option>
+          <option value="BARRA">☕ Barra</option>
+          <option value="COCINA">👩‍🍳 Cocina</option>
+          <option value="GAZON">🧾 Meseros</option>
+        </select>
+      </div>
+      <button class="btn-outline btn btn-sm" onclick="exportarCSV()">📥 Exportar CSV</button>
+      <button class="btn btn-sm" onclick="cargarTodo()">🔄 Actualizar</button>
+    </div>
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot" style="background:#4caf7d"></div><span>OK — dentro del margen de tolerancia</span></div>
+      <div class="legend-item"><div class="legend-dot" style="background:#f0a500"></div><span>Revisar — entre 1× y 2.5× el margen</span></div>
+      <div class="legend-item"><div class="legend-dot" style="background:#e05252"></div><span>Discrepancia — supera 2.5× el margen</span></div>
+      <div class="legend-item"><div class="legend-dot" style="background:#555"></div><span>—  Sin conteo físico registrado todavía</span></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">
+      <span><span class="dot"></span>Comparación por ingrediente (<span id="cnt-filas">0</span>)</span>
+    </div>
+    <div class="tbl-wrap">
+      <table class="tbl">
+        <thead><tr>
+          <th>Estado</th>
+          <th>Ingrediente</th>
+          <th>Unidad</th>
+          <th class="num" title="Suma de movimientos ENTRADA del período">A — Entradas<br><small>registradas</small></th>
+          <th class="num" title="Entradas − consumo Toteat teórico − mermas">B — Stock<br><small>calculado</small></th>
+          <th class="num" title="Último conteo físico manual">C — Conteo<br><small>físico</small></th>
+          <th class="num">Varianza<br><small>C − B</small></th>
+          <th class="num">Varianza %</th>
+          <th>Margen<br><small>permitido</small></th>
+          <th>Fecha conteo</th>
+          <th>Quién contó</th>
+        </tr></thead>
+        <tbody id="tbody"><tr><td colspan="11" class="empty">Conectando…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <details class="panel">
+    <summary>⚙ Configurar márgenes de tolerancia y frecuencia de conteo</summary>
+    <div class="info-box" style="margin-top:12px">Los márgenes aquí configurados son los mismos que usa la triangulación de arriba. Para unidades enteras (UN, pza) el margen siempre es 0 — no hay tolerancia.</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;margin-top:14px">
+      <div class="panel" style="margin:0">
+        <div class="panel-title" style="border:none;padding-bottom:0;margin-bottom:10px">Márgenes por unidad</div>
+        <div class="field" style="margin-bottom:8px"><label>Tolerancia kg / L / g / ml (%)</label><input type="number" id="cfg-tol-peso" min="0" max="50" step="0.5" style="width:90px" onchange="guardarCfg('tol_pct_peso',this.value)"></div>
+      </div>
+      <div class="panel" style="margin:0">
+        <div class="panel-title" style="border:none;padding-bottom:0;margin-bottom:10px">Frecuencia de conteo (días)</div>
+        <div class="field" style="margin-bottom:8px"><label>☕ Barra</label><input type="number" id="cfg-f-barra" min="1" style="width:80px" onchange="guardarCfg('frecuencia_barra_dias',this.value)"></div>
+        <div class="field" style="margin-bottom:8px"><label>👩‍🍳 Cocina</label><input type="number" id="cfg-f-cocina" min="1" style="width:80px" onchange="guardarCfg('frecuencia_cocina_dias',this.value)"></div>
+        <div class="field" style="margin-bottom:8px"><label>🧾 Meseros</label><input type="number" id="cfg-f-gazon" min="1" style="width:80px" onchange="guardarCfg('frecuencia_gazon_dias',this.value)"></div>
+        <div class="field"><label>👑 Jefatura</label><input type="number" id="cfg-f-jefatura" min="1" style="width:80px" onchange="guardarCfg('frecuencia_jefatura_dias',this.value)"></div>
+      </div>
+    </div>
+  </details>
+</div>
+
+<footer class="app-footer">Inventario Rita Roux Café · Triangulación: entradas del equipo (A) × stock calculado por Toteat (B) × conteo físico (C)</footer>
+
+<script src="gsheets.js"></script>
+<script>
+let TRIANGULACION = [];
+let INGREDIENTES  = {};
+
+window.addEventListener('DOMContentLoaded', () => gsInit(onAuth));
+
+async function onAuth() {
+  await invInitSheet();
+  await cargarTodo();
+}
+
+async function cargarTodo() {
+  document.getElementById('tbody').innerHTML = '<tr><td colspan="11" class="empty">Cargando…</td></tr>';
+  const [recetas, movs, conteos, cfg] = await Promise.all([
+    invCargarRecetas(), invCargarMovimientos(), invCargarConteoFisico(), invCargarConfig(),
+  ]);
+  INGREDIENTES = await invSembrarIngredientesSiVacio(recetas);
+  TRIANGULACION = invTriangular(INGREDIENTES, movs, conteos);
+  poblarConfig(cfg);
+  renderTabla();
+}
+
+function poblarConfig(cfg) {
+  const set = (id, val) => { const el=document.getElementById(id); if(el&&val!==undefined) el.value=val; };
+  set('cfg-tol-peso',    cfg['tol_pct_peso']   || 5);
+  set('cfg-f-barra',     cfg['frecuencia_barra_dias']    || '');
+  set('cfg-f-cocina',    cfg['frecuencia_cocina_dias']   || '');
+  set('cfg-f-gazon',     cfg['frecuencia_gazon_dias']    || '');
+  set('cfg-f-jefatura',  cfg['frecuencia_jefatura_dias'] || '');
+}
+
+async function guardarCfg(clave, valor) {
+  await invGuardarConfig(clave, valor);
+}
+
+function renderTabla() {
+  const q     = (document.getElementById('buscar').value||'').toLowerCase();
+  const fEst  = document.getElementById('filtro-est').value;
+  const fEst2 = document.getElementById('filtro-estado').value;
+
+  let filas = TRIANGULACION.filter(r => {
+    if (q && !r.nombre.toLowerCase().includes(q) && !r.id.toLowerCase().includes(q)) return false;
+    if (fEst !== 'TODOS') { const est=(INGREDIENTES[r.id]?.estacion||'TODOS'); if(est!==fEst&&est!=='TODOS') return false; }
+    if (fEst2 === 'TODOS') return true;
+    if (fEst2 === 'ND')    return r.conteoFisico === null;
+    if (fEst2 === 'OK')    return r.estado?.estado === 'OK';
+    if (fEst2 === 'Discrepancia') return r.estado?.estado === 'Discrepancia';
+    if (fEst2 === 'Revisar') return r.estado?.estado === 'Discrepancia' || r.estado?.estado === 'Revisar';
+    return true;
+  });
+
+  const disc = TRIANGULACION.filter(r=>r.estado?.estado==='Discrepancia').length;
+  const warn = TRIANGULACION.filter(r=>r.estado?.estado==='Revisar').length;
+  const ok   = TRIANGULACION.filter(r=>r.estado?.estado==='OK').length;
+  const nd   = TRIANGULACION.filter(r=>r.conteoFisico===null).length;
+  document.getElementById('kpi-disc').textContent = disc;
+  document.getElementById('kpi-warn').textContent = warn;
+  document.getElementById('kpi-ok').textContent   = ok;
+  document.getElementById('kpi-nd').textContent   = nd;
+  document.getElementById('cnt-filas').textContent = filas.length;
+
+  const fmtN = n => n != null ? n.toLocaleString('es-CL',{maximumFractionDigits:3}) : '—';
+  const tol  = n => invUmbralDeUnidad(n) + '%';
+
+  document.getElementById('tbody').innerHTML = filas.map(r => {
+    const sClass = r.conteoFisico===null ? 's-nd' : (r.estado?.cls==='ok'?'s-ok':r.estado?.cls==='warn'?'s-warn':'s-bad');
+    const emoji  = r.conteoFisico===null ? '—' : r.estado?.emoji || '—';
+    const varClass = (r.varianza||0)>0 ? 'var-pos' : (r.varianza||0)<0 ? 'var-neg' : '';
+    const barW  = Math.min(100, Math.abs(r.varianzaPct||0) / Math.max(1, invUmbralDeUnidad(r.unidad)*3) * 100);
+    const barCls = r.estado?.cls === 'ok' ? 'bar-ok' : r.estado?.cls === 'warn' ? 'bar-warn' : 'bar-bad';
+    return `<tr>
+      <td class="${sClass}">${emoji} ${r.conteoFisico===null?'—':(r.estado?.estado||'—')}</td>
+      <td>${r.nombre}</td>
+      <td>${r.unidad}</td>
+      <td class="num">${fmtN(r.entradas)}</td>
+      <td class="num">${fmtN(r.stockCalculado)}</td>
+      <td class="num">${r.conteoFisico!==null ? fmtN(r.conteoFisico) : '<span class="s-nd">Sin contar</span>'}</td>
+      <td class="num ${varClass}">${r.varianza!==null ? (r.varianza>0?'+':'')+fmtN(r.varianza) : '—'}</td>
+      <td class="num">
+        ${r.varianzaPct!==null ? r.varianzaPct.toFixed(1)+'%<div class="var-bar-wrap"><div class="var-bar '+barCls+'" style="width:'+barW+'%"></div></div>' : '—'}
+      </td>
+      <td>${tol(r.unidad)}</td>
+      <td>${r.fechaConteo||'—'}</td>
+      <td>${r.usuarioConteo||'—'}</td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="11" class="empty">Sin resultados para este filtro.</td></tr>';
+}
+
+function exportarCSV() {
+  const headers = ['Estado','Ingrediente','Unidad','A - Entradas','B - Stock Calculado','C - Conteo Físico','Varianza (C-B)','Varianza %','Margen permitido','Fecha conteo','Quién contó'];
+  const rows = TRIANGULACION.map(r => [
+    r.conteoFisico===null ? 'Sin contar' : (r.estado?.estado||'—'), r.nombre, r.unidad,
+    r.entradas, r.stockCalculado, r.conteoFisico??'', r.varianza??'', r.varianzaPct??'',
+    invUmbralDeUnidad(r.unidad)+'%', r.fechaConteo||'', r.usuarioConteo||'',
+  ]);
+  const csv = '﻿' + [headers,...rows].map(r=>r.map(v=>{ const s=String(v??''); return /[",\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s; }).join(',')).join('\r\n');
+  const a = Object.assign(document.createElement('a'),{href:URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'})),download:`triangulacion-${new Date().toISOString().slice(0,10)}.csv`});
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+}
+</script>
+</body>
+</html>

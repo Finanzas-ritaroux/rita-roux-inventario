@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lista de Compras Sugerida — Inventario Rita Roux</title>
+<link rel="stylesheet" href="theme.css">
+<style>
+  .prov-card { border: 2px solid var(--border); }
+  .prov-card.alarma { border-color: var(--red); box-shadow: 0 0 0 1px var(--red); }
+  .prov-score { font-size: 22px; font-weight: 700; }
+  .prov-meta { font-size: 12px; color: var(--light); }
+  details.panel summary { cursor: pointer; font-weight: 700; font-size: 14px; padding: 4px 0; }
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <div>
+    <div class="logo">Rita <span>Roux</span> Inventario</div>
+    <div class="subtitle">Lista de Compras Sugerida</div>
+  </div>
+  <div class="nav">
+    <a href="inicio.html">🏠 Inicio</a>
+    <a href="productos-recetas.html">📋 Productos y Recetas</a>
+    <a href="stock.html">📦 Stock</a>
+    <a href="entradas.html">🚚 Entradas</a>
+    <a href="lista-compras.html" class="cur">🛒 Compras</a>
+    <a href="mermas.html">🗑 Mermas</a>
+    <a href="costos.html">💰 Costos</a>
+    <a href="estacion.html">📦 Bodega</a>
+    <a href="triangulacion.html">🔺 Triangulación</a>
+    <a href="edicion-datos.html">✏️ Edición de Datos</a>
+  </div>
+</header>
+
+<div class="container">
+
+  <div class="info-box">
+    <b>El proveedor es el que acumula puntaje, no el producto.</b> Cada producto bajo de stock suma puntos a SU proveedor; cuando el proveedor junta suficientes puntos, salta la alarma 🔔 para hacerle un pedido completo (no uno por uno). Un proveedor que demora más en entregar tiene un umbral más bajo — se alarma antes, para no quedar sin stock mientras llega el pedido.
+  </div>
+
+  <div class="cards">
+    <div class="card bad"><div class="label">Proveedores en alarma</div><div class="value" id="kpi-alarma">—</div></div>
+    <div class="card accent"><div class="label">Proveedores con sugerencias</div><div class="value" id="kpi-total-prov">—</div></div>
+    <div class="card warn"><div class="label">Productos sugeridos</div><div class="value" id="kpi-total-items">—</div></div>
+  </div>
+
+  <div class="row" style="margin-bottom:18px">
+    <button class="btn-outline btn" onclick="actualizarYRenderizar()">🔄 Actualizar sugeridos</button>
+    <span id="status" style="font-size:12px;color:var(--mid)"></span>
+  </div>
+
+  <div id="lista-contenedor"><div class="empty">Conectando…</div></div>
+
+  <div class="panel">
+    <div class="panel-title"><span><span class="dot"></span>⚙ Tiempo de entrega por proveedor</span></div>
+    <div class="info-box">Editar nombres, tiempo de entrega y datos de contacto de proveedores ahora se hace desde <a href="edicion-datos.html">✏️ Edición de Datos → Proveedores</a> — un solo lugar para todo eso. Aquí abajo siempre ves los valores vigentes que usa el cálculo de alarma.</div>
+    <div class="tbl-wrap">
+      <table class="tbl">
+        <thead><tr><th>Proveedor</th><th class="num">Tiempo de entrega (días)</th><th>Días que entrega</th></tr></thead>
+        <tbody id="tbody-proveedores"><tr><td colspan="3" class="empty">Conectando…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <details class="panel">
+    <summary>📊 Historial de quiebres de stock por proveedor</summary>
+    <div class="info-box" style="margin-top:14px">Cada vez que un ingrediente llega a 0 de stock, queda registrado aquí con su proveedor y se calcula cuánto dura — sirve para detectar a futuro qué proveedores generan más quiebres y por cuánto tiempo.</div>
+    <div class="tbl-wrap">
+      <table class="tbl">
+        <thead><tr><th>Proveedor</th><th class="num">Quiebres totales</th><th class="num">Abiertos ahora</th><th class="num">Duración promedio (días)</th><th class="num">Quiebre abierto más largo</th><th>Último quiebre</th></tr></thead>
+        <tbody id="tbody-quiebres"><tr><td colspan="6" class="empty">Conectando…</td></tr></tbody>
+      </table>
+    </div>
+    <div class="panel-title" style="border:none;padding:10px 0 10px;margin:0"><span>Quiebres abiertos ahora (detalle)</span></div>
+    <div class="tbl-wrap">
+      <table class="tbl">
+        <thead><tr><th>Ingrediente</th><th>Proveedor</th><th>Desde</th><th class="num">Días en curso</th></tr></thead>
+        <tbody id="tbody-quiebres-abiertos"><tr><td colspan="4" class="empty">Conectando…</td></tr></tbody>
+      </table>
+    </div>
+  </details>
+</div>
+
+<footer class="app-footer">Inventario Rita Roux Café · cada cambio se guarda al instante en el Sheet</footer>
+
+<script src="gsheets.js"></script>
+<script src="compras.js"></script>
+<script>
+let INGREDIENTES = {};
+let STOCK = {};
+let PROVEEDORES = {};
+let LISTA = [];
+let PROVEEDORES_CALC = [];
+
+window.addEventListener('DOMContentLoaded', () => {
+  gsInit(onAuth);
+  if (location.hash) setTimeout(() => { const el = document.getElementById(location.hash.slice(1)); if (el) el.scrollIntoView({ behavior: 'smooth' }); }, 1200);
+});
+
+async function onAuth() {
+  await invInitSheet();
+  const recetas = await invCargarRecetas();
+  const ingredientes = await invSembrarIngredientesSiVacio(recetas);
+  INGREDIENTES = ingredientes;
+  PROVEEDORES = await invSembrarProveedoresDesdeIngredientes(INGREDIENTES);
+  await actualizarYRenderizar();
+  await renderQuiebres();
+}
+
+async function actualizarYRenderizar() {
+  document.getElementById('status').textContent = 'Calculando…';
+  const movimientos = await invCargarMovimientos();
+  STOCK = invCalcularStock(movimientos);
+
+  PROVEEDORES_CALC = calcularComprasSugeridas(INGREDIENTES, STOCK, PROVEEDORES);
+
+  const listaGuardada = await invCargarListaCompras();
+  const abiertosIds = new Set(listaGuardada.filter(l => l.estado === 'Sugerido').map(l => l.idIngrediente));
+  const nuevos = [];
+  PROVEEDORES_CALC.forEach(p => p.items.forEach(it => {
+    if (!abiertosIds.has(it.idIngrediente)) {
+      nuevos.push({ id: invNuevoId('LC'), idIngrediente: it.idIngrediente, nombre: it.nombre, proveedor: p.nombre, motivo: it.motivo, score: it.score, cantidadSugerida: it.cantidadSugerida, cantidadAjustada: it.cantidadSugerida, unidad: it.unidad, estado: 'Sugerido', fechaGenerado: new Date().toISOString() });
+    }
+  }));
+  if (nuevos.length) await invAgregarItemsListaCompras(nuevos);
+
+  LISTA = await invCargarListaCompras();
+  renderProveedores();
+  renderTablaProveedores();
+  document.getElementById('status').textContent = nuevos.length ? `✓ ${nuevos.length} producto(s) nuevo(s) agregado(s).` : '✓ Lista al día.';
+}
+
+function renderProveedores() {
+  const abiertos = LISTA.filter(l => l.estado === 'Sugerido');
+  const porProveedorGuardado = {};
+  abiertos.forEach(l => { (porProveedorGuardado[l.proveedor] = porProveedorGuardado[l.proveedor] || []).push(l); });
+
+  document.getElementById('kpi-alarma').textContent = PROVEEDORES_CALC.filter(p => p.alarma).length;
+  document.getElementById('kpi-total-prov').textContent = PROVEEDORES_CALC.length;
+  document.getElementById('kpi-total-items').textContent = abiertos.length;
+
+  document.getElementById('lista-contenedor').innerHTML = PROVEEDORES_CALC.map(p => {
+    const items = (porProveedorGuardado[p.nombre] || []).sort((a, b) => b.score - a.score);
+    if (!items.length) return '';
+    return `
+    <div class="panel prov-card${p.alarma ? ' alarma' : ''}" id="prov-${p.slug}">
+      <div class="panel-title">
+        <span>
+          ${p.alarma ? '🔔 ' : ''}<span class="dot"></span>${p.nombre}
+          ${p.alarma ? '<span class="pill bad" style="margin-left:8px">HACER PEDIDO</span>' : ''}
+        </span>
+        <button class="btn btn-sm" onclick="marcarPedidoProveedor('${p.nombre.replace(/'/g, "\\'")}')">✓ Marcar pedido completo</button>
+      </div>
+      <div class="row" style="margin-bottom:14px;gap:24px">
+        <div><div class="prov-score" style="color:${p.alarma ? 'var(--red)' : 'var(--dark)'}">${p.puntaje} / ${p.umbral} pts</div><div class="prov-meta">Puntaje acumulado / umbral de alarma</div></div>
+        <div><div class="prov-score">${p.tiempoEntregaDias || 0} día${p.tiempoEntregaDias === 1 ? '' : 's'}</div><div class="prov-meta">Tiempo de entrega${p.diasQueEntrega ? ' · ' + p.diasQueEntrega : ''}</div></div>
+      </div>
+      <div class="tbl-wrap">
+        <table class="tbl">
+          <thead><tr><th>Ingrediente</th><th>Motivo</th><th class="num">Score</th><th class="num">Cantidad a pedir</th><th>Unidad</th><th></th></tr></thead>
+          <tbody>
+            ${items.map(l => `
+              <tr>
+                <td>${l.nombre}</td>
+                <td><span class="pill ${l.motivo === 'Urgente' ? 'bad' : 'warn'}">${l.motivo}</span></td>
+                <td class="num">${l.score}</td>
+                <td class="num"><input type="number" value="${l.cantidadAjustada}" style="width:90px" onchange="actualizarCantidad(${l.fila}, this.value)"></td>
+                <td>${l.unidad}</td>
+                <td>
+                  <button class="btn btn-sm" onclick="marcarComprado(${l.fila})">✓ Comprado</button>
+                  <button class="btn btn-sm btn-outline" onclick="descartarItem(${l.fila})">Descartar</button>
+                </td>
+              </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>`;
+  }).join('') || '<div class="panel"><div class="empty">No hay productos sugeridos por ahora — todo el stock está bien. 🎉</div></div>';
+}
+
+async function actualizarCantidad(fila, valor) {
+  await invActualizarItemListaCompras(fila, { cantidadAjustada: parseFloat(valor) || 0 });
+}
+
+async function marcarComprado(fila) {
+  await invActualizarItemListaCompras(fila, { estado: 'Comprado', fechaResuelto: new Date().toISOString() });
+  LISTA = await invCargarListaCompras();
+  renderProveedores();
+}
+
+async function descartarItem(fila) {
+  if (!confirm('¿Quitar este ítem de la lista sugerida?')) return;
+  await invActualizarItemListaCompras(fila, { estado: 'Descartado', fechaResuelto: new Date().toISOString() });
+  LISTA = await invCargarListaCompras();
+  renderProveedores();
+}
+
+async function marcarPedidoProveedor(nombreProveedor) {
+  const abiertos = LISTA.filter(l => l.estado === 'Sugerido' && l.proveedor === nombreProveedor);
+  if (!abiertos.length) return;
+  if (!confirm(`¿Marcar como pedidos los ${abiertos.length} ítems de "${nombreProveedor}"? (esto NO suma stock — cuando llegue, regístralo en Entradas)`)) return;
+  for (const l of abiertos) await invActualizarItemListaCompras(l.fila, { estado: 'Comprado', fechaResuelto: new Date().toISOString() });
+  LISTA = await invCargarListaCompras();
+  renderProveedores();
+}
+
+// ─── Tiempo de entrega por proveedor (de solo lectura aquí — se edita en Edición de Datos) ──
+function renderTablaProveedores() {
+  const nombres = Object.keys(PROVEEDORES).sort((a, b) => a.localeCompare(b));
+  document.getElementById('tbody-proveedores').innerHTML = nombres.map(n => {
+    const p = PROVEEDORES[n];
+    return `<tr><td>${n}</td><td class="num">${p.tiempoEntregaDias || 0}</td><td>${p.diasQueEntrega || '—'}</td></tr>`;
+  }).join('') || '<tr><td colspan="3" class="empty">Sin proveedores todavía.</td></tr>';
+}
+
+// ─── Historial de quiebres de stock ──────────────────────────────────────────
+// Duración: para quiebres CERRADOS ya viene calculada (fechaFin-fechaInicio); para
+// los ABIERTOS se calcula "en vivo" (ahora-fechaInicio), porque siguen corriendo.
+function diasEntre(fechaInicioISO, hastaMs) {
+  return Math.round((hastaMs - new Date(fechaInicioISO).getTime()) / 86400000 * 10) / 10;
+}
+
+async function renderQuiebres() {
+  const quiebres = await invCargarQuiebresStock();
+  const ahora = Date.now();
+  const porProveedor = {};
+  const abiertosDetalle = [];
+
+  quiebres.forEach(q => {
+    const prov = q.proveedor || 'Sin proveedor';
+    if (!porProveedor[prov]) porProveedor[prov] = { total: 0, abiertos: 0, diasCerrados: 0, cerrados: 0, masLargoAbierto: 0, ultimo: '' };
+    const s = porProveedor[prov];
+    s.total++;
+    if (q.fechaInicio > s.ultimo) s.ultimo = q.fechaInicio;
+    if (q.estado === 'Abierto') {
+      const diasEnCurso = diasEntre(q.fechaInicio, ahora);
+      s.abiertos++;
+      s.masLargoAbierto = Math.max(s.masLargoAbierto, diasEnCurso);
+      abiertosDetalle.push({ nombre: q.nombreIngrediente, proveedor: prov, desde: q.fechaInicio, dias: diasEnCurso });
+    } else {
+      s.cerrados++;
+      s.diasCerrados += q.duracionDias || 0;
+    }
+  });
+
+  const nombres = Object.keys(porProveedor).sort((a, b) => porProveedor[b].total - porProveedor[a].total);
+  document.getElementById('tbody-quiebres').innerHTML = nombres.map(n => {
+    const s = porProveedor[n];
+    const promedio = s.cerrados ? s.diasCerrados / s.cerrados : null;
+    return `
+    <tr>
+      <td>${n}</td>
+      <td class="num">${s.total}</td>
+      <td class="num">${s.abiertos || '—'}</td>
+      <td class="num">${promedio != null ? promedio.toFixed(1) : '— (sin cerrar todavía)'}</td>
+      <td class="num">${s.masLargoAbierto ? '<span class="pill bad">' + s.masLargoAbierto.toFixed(1) + ' días</span>' : '—'}</td>
+      <td>${s.ultimo ? s.ultimo.slice(0, 10) : '—'}</td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="6" class="empty">Sin quiebres de stock registrados todavía. 🎉</td></tr>';
+
+  abiertosDetalle.sort((a, b) => b.dias - a.dias);
+  document.getElementById('tbody-quiebres-abiertos').innerHTML = abiertosDetalle.map(a => `
+    <tr>
+      <td>${a.nombre}</td><td>${a.proveedor}</td><td>${a.desde.slice(0, 10)}</td>
+      <td class="num"><span class="pill ${a.dias >= 2 ? 'bad' : 'warn'}">${a.dias.toFixed(1)}</span></td>
+    </tr>`).join('') || '<tr><td colspan="4" class="empty">No hay ningún ingrediente agotado en este momento. 🎉</td></tr>';
+}
+</script>
+</body>
+</html>

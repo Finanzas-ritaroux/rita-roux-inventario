@@ -18,15 +18,19 @@
     <a href="productos-recetas.html">📋 Productos y Recetas</a>
     <a href="stock.html" class="cur">📦 Stock</a>
     <a href="entradas.html">🚚 Entradas</a>
+    <a href="lista-compras.html">🛒 Compras</a>
     <a href="mermas.html">🗑 Mermas</a>
     <a href="costos.html">💰 Costos</a>
+    <a href="estacion.html">📦 Bodega</a>
+    <a href="triangulacion.html">🔺 Triangulación</a>
+    <a href="edicion-datos.html">✏️ Edición de Datos</a>
   </div>
 </header>
 
 <div class="container">
 
   <div class="cards">
-    <div class="card accent"><div class="label">Ingredientes</div><div class="value" id="kpi-total">—</div></div>
+    <div class="card accent"><div class="label">Ingredientes a contar</div><div class="value" id="kpi-total">—</div></div>
     <div class="card bad"><div class="label">Bajo stock mínimo</div><div class="value" id="kpi-bajo">—</div></div>
     <div class="card good"><div class="label">Valor total inventario</div><div class="value" id="kpi-valor">—</div></div>
     <div class="card warn"><div class="label">Sin stock mínimo definido</div><div class="value" id="kpi-sin-min">—</div></div>
@@ -34,33 +38,48 @@
 
   <div class="panel">
     <div class="panel-title">
-      <span><span class="dot"></span>Sincronizar ventas de Toteat</span>
+      <span><span class="dot"></span>Sincronizar con Toteat</span>
     </div>
     <div class="info-box">
-      Descarga las ventas del rango elegido desde el proxy de Reportes Toteat y descuenta automáticamente los ingredientes según receta. Las órdenes ya sincronizadas antes no se vuelven a descontar (deduplicado por Nº de orden).
+      Descarga las ventas del rango elegido y descuenta automáticamente los ingredientes según receta. Las órdenes ya sincronizadas antes no se vuelven a descontar (deduplicado por Nº de orden).
     </div>
-    <div class="row">
+    <div class="row" style="margin-bottom:14px">
       <div class="field"><label>Desde</label><input type="date" id="sync-ini"></div>
       <div class="field"><label>Hasta</label><input type="date" id="sync-fin"></div>
       <button class="btn" id="btn-sync" onclick="ejecutarSync()">Sincronizar ventas</button>
       <span id="sync-status" style="font-size:12px;color:var(--mid)"></span>
     </div>
+    <div class="info-box">
+      Toteat también sabe el <b>costo más reciente</b> de cada insumo (de su propio módulo de inventario) — este botón solo actualiza ese costo y detecta insumos nuevos que aparecen vendidos en Toteat pero no están en tu lista. No trae proveedor ni stock mínimo — eso sigue siendo manual, Toteat no lo tiene.
+    </div>
+    <div class="row">
+      <button class="btn-outline btn" onclick="actualizarCostosDesdeToteat()">🔄 Actualizar costos desde Toteat</button>
+      <span id="costos-status" style="font-size:12px;color:var(--mid)"></span>
+    </div>
   </div>
 
   <div class="panel">
     <div class="panel-title">
-      <span><span class="dot"></span>Stock actual por ingrediente (<span id="cnt-ing">0</span>)</span>
+      <span><span class="dot"></span>Stock por ingrediente (<span id="cnt-ing">0</span>)</span>
       <div class="row" style="gap:8px">
-        <input type="text" id="buscar" placeholder="Buscar ingrediente…" style="width:240px" oninput="renderTabla()">
-        <label style="display:flex;align-items:center;gap:6px;font-weight:400"><input type="checkbox" id="solo-bajo" onchange="renderTabla()" style="width:auto"> Solo bajo mínimo</label>
+        <input type="text" id="buscar" placeholder="Buscar ingrediente…" style="width:220px" oninput="renderTabla()">
+        <a href="edicion-datos.html" class="btn btn-sm" style="text-decoration:none;display:inline-block">✏️ Crear/Editar Ingredientes →</a>
       </div>
+    </div>
+    <div class="info-box">
+      Marca cada ingrediente como <b>🔴 Crítico</b> (cuéntalo seguido, es caro o se mueve rápido), <b>⚪ Normal</b>, o <b>🚫 No contar</b> (cosas como sal, pimienta o especias que casi nunca se acaban — no generan alerta ni hace falta contarlas). Para crear ingredientes nuevos, cambiar nombre/unidad/proveedor o eliminar uno, usa <a href="edicion-datos.html">✏️ Edición de Datos</a>.
+    </div>
+    <div class="picker-cats" style="margin-bottom:14px">
+      <button type="button" class="picker-cat active" data-f="CONTAR" onclick="cambiarFiltroCategoria(this)">A contar</button>
+      <button type="button" class="picker-cat" data-f="NO_CONTAR" onclick="cambiarFiltroCategoria(this)">🚫 No contar</button>
+      <button type="button" class="picker-cat" data-f="TODOS" onclick="cambiarFiltroCategoria(this)">Todos</button>
     </div>
     <div class="tbl-wrap">
       <table class="tbl">
         <thead><tr>
-          <th>Id</th><th>Ingrediente</th><th class="num">Stock Actual</th><th>Unidad</th><th class="num">Stock Mínimo</th><th>Estado</th><th class="num">Costo Actual</th><th class="num">Valor</th><th>Proveedor</th><th></th>
+          <th>Ingrediente</th><th class="num">Stock Actual</th><th>Unidad</th><th class="num">Stock Mínimo</th><th>Estado</th><th>Seguimiento</th><th class="num">Valor</th><th></th>
         </tr></thead>
-        <tbody id="tbody"><tr><td colspan="10" class="empty">Conectando…</td></tr></tbody>
+        <tbody id="tbody"><tr><td colspan="8" class="empty">Conectando…</td></tr></tbody>
       </table>
     </div>
   </div>
@@ -74,6 +93,7 @@
 let INGREDIENTES = {};
 let STOCK = {};
 let RECETAS = {};
+let categoriaFiltro = 'CONTAR'; // 'CONTAR' (Crítico+Normal) | 'NO_CONTAR' | 'TODOS'
 
 window.addEventListener('DOMContentLoaded', () => {
   const hoy = new Date();
@@ -93,10 +113,12 @@ async function cargarTodo() {
   RECETAS = recetas;
   INGREDIENTES = await invSembrarIngredientesSiVacio(RECETAS);
   STOCK = invCalcularStock(movimientos);
+  await invSincronizarQuiebresStock(INGREDIENTES, STOCK);
   renderTabla();
 }
 
-function estadoIngrediente(stock, minimo) {
+function estadoIngrediente(stock, minimo, seguimiento) {
+  if (seguimiento === 'NO_CONTAR') return { cls: 'mid', txt: 'No se sigue' };
   if (!minimo) return { cls: 'mid', txt: 'Sin mínimo' };
   if (stock <= 0) return { cls: 'bad', txt: 'Agotado' };
   if (stock < minimo) return { cls: 'bad', txt: 'Bajo mínimo' };
@@ -104,25 +126,39 @@ function estadoIngrediente(stock, minimo) {
   return { cls: 'ok', txt: 'OK' };
 }
 
+function cambiarFiltroCategoria(btn) {
+  categoriaFiltro = btn.dataset.f;
+  document.querySelectorAll('.picker-cat').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderTabla();
+}
+
 function renderTabla() {
   const q = (document.getElementById('buscar').value || '').toLowerCase();
-  const soloBajo = document.getElementById('solo-bajo').checked;
 
   let filas = Object.values(INGREDIENTES).map(i => {
     const stock = STOCK[i.id] || 0;
-    const estado = estadoIngrediente(stock, i.stockMinimo);
+    const estado = estadoIngrediente(stock, i.stockMinimo, i.seguimiento);
     return { ...i, stock, estado };
   });
 
+  if (categoriaFiltro === 'CONTAR') filas = filas.filter(i => i.seguimiento !== 'NO_CONTAR');
+  else if (categoriaFiltro === 'NO_CONTAR') filas = filas.filter(i => i.seguimiento === 'NO_CONTAR');
+
   if (q) filas = filas.filter(i => i.id.toLowerCase().includes(q) || i.nombre.toLowerCase().includes(q));
-  if (soloBajo) filas = filas.filter(i => i.estado.cls === 'bad' || i.estado.cls === 'warn');
-  filas.sort((a, b) => a.nombre.localeCompare(b.nombre));
+  filas.sort((a, b) => {
+    const orden = { CRITICO: 0, NORMAL: 1, NO_CONTAR: 2 };
+    const diff = (orden[a.seguimiento] ?? 1) - (orden[b.seguimiento] ?? 1);
+    return diff !== 0 ? diff : a.nombre.localeCompare(b.nombre);
+  });
 
+  // KPIs siempre se calculan sobre lo que SÍ se sigue (Crítico+Normal) — "No contar" no debe generar ruido.
+  const aSeguir = Object.values(INGREDIENTES).filter(i => i.seguimiento !== 'NO_CONTAR');
   const totalValor = Object.values(INGREDIENTES).reduce((s, i) => s + (STOCK[i.id] || 0) * (i.costoActual || 0), 0);
-  const bajoCount = Object.values(INGREDIENTES).filter(i => estadoIngrediente(STOCK[i.id] || 0, i.stockMinimo).cls === 'bad').length;
-  const sinMinCount = Object.values(INGREDIENTES).filter(i => !i.stockMinimo).length;
+  const bajoCount = aSeguir.filter(i => estadoIngrediente(STOCK[i.id] || 0, i.stockMinimo, i.seguimiento).cls === 'bad').length;
+  const sinMinCount = aSeguir.filter(i => !i.stockMinimo).length;
 
-  document.getElementById('kpi-total').textContent = Object.keys(INGREDIENTES).length;
+  document.getElementById('kpi-total').textContent = aSeguir.length;
   document.getElementById('kpi-bajo').textContent = bajoCount;
   document.getElementById('kpi-valor').textContent = '$ ' + Math.round(totalValor).toLocaleString('es-CL');
   document.getElementById('kpi-sin-min').textContent = sinMinCount;
@@ -130,17 +166,28 @@ function renderTabla() {
 
   document.getElementById('tbody').innerHTML = filas.map(i => `
     <tr>
-      <td>${i.id}</td>
-      <td>${i.nombre}</td>
+      <td><b>${i.nombre}</b></td>
       <td class="num">${i.stock.toLocaleString('es-CL', { maximumFractionDigits: 3 })}</td>
       <td>${i.unidad}</td>
-      <td class="num"><input type="number" value="${i.stockMinimo || ''}" style="width:80px" onchange="actualizarMinimo('${i.id}', this.value)"></td>
+      <td class="num">${i.seguimiento === 'NO_CONTAR' ? '—' : `<input type="number" value="${i.stockMinimo || ''}" style="width:80px" onchange="actualizarMinimo('${i.id}', this.value)">`}</td>
       <td><span class="pill ${i.estado.cls}">${i.estado.txt}</span></td>
-      <td class="num">$ ${Math.round(i.costoActual || 0).toLocaleString('es-CL')}</td>
+      <td>
+        <select onchange="actualizarCategoria('${i.id}', this.value)" style="font-size:11.5px;padding:5px 6px">
+          <option value="CRITICO" ${i.seguimiento === 'CRITICO' ? 'selected' : ''}>🔴 Crítico</option>
+          <option value="NORMAL" ${i.seguimiento === 'NORMAL' ? 'selected' : ''}>⚪ Normal</option>
+          <option value="NO_CONTAR" ${i.seguimiento === 'NO_CONTAR' ? 'selected' : ''}>🚫 No contar</option>
+        </select>
+      </td>
       <td class="num">$ ${Math.round(i.stock * (i.costoActual || 0)).toLocaleString('es-CL')}</td>
-      <td>${i.proveedor || '—'}</td>
       <td><button class="btn btn-sm btn-outline" onclick="ajustarStock('${i.id}')">Ajustar</button></td>
-    </tr>`).join('') || '<tr><td colspan="10" class="empty">Sin ingredientes todavía — créalos desde Productos y Recetas.</td></tr>';
+    </tr>`).join('') || '<tr><td colspan="8" class="empty">Sin ingredientes en esta vista.</td></tr>';
+}
+
+async function actualizarCategoria(id, valor) {
+  const ing = INGREDIENTES[id];
+  ing.seguimiento = valor;
+  await invGuardarIngrediente(ing);
+  renderTabla();
 }
 
 async function actualizarMinimo(id, valor) {
@@ -165,6 +212,49 @@ async function ajustarStock(id) {
     usuario: '', comentario: `Stock calculado ${actual} → físico ${realNum}`,
   }]);
   await cargarTodo();
+}
+
+// ─── Sincronizar costos de insumos desde Toteat ──────────────────────────────
+// Toteat no tiene proveedor ni stock mínimo (decisiones internas nuestras) — solo
+// se actualiza costo, y se detectan SKUs que Toteat conoce pero nosotros no.
+async function actualizarCostosDesdeToteat() {
+  const status = document.getElementById('costos-status');
+  status.textContent = 'Consultando Toteat…';
+  try {
+    const hoy = new Date();
+    const hace2 = new Date(hoy); hace2.setDate(hoy.getDate() - 2);
+    const fmt = d => d.toISOString().slice(0, 10).replaceAll('-', '');
+    const res = await fetch(`${TOTEAT_PROXY_BASE}/api/inventorystate?ini=${fmt(hace2)}&end=${fmt(hoy)}`);
+    const json = await res.json();
+    if (!json.ok) throw new Error(json.msg || 'Error de Toteat');
+
+    let actualizados = 0;
+    const nuevos = [];
+    for (const item of (json.data || [])) {
+      const sku = item.sku;
+      const dias = (item.warehouses || []).flatMap(w => w.inventory || []);
+      const ultimoCosto = dias.length ? dias[dias.length - 1].cost_last_inbound || dias[dias.length - 1].cost_average : null;
+      if (!ultimoCosto) continue;
+      if (INGREDIENTES[sku]) {
+        if (Math.round(INGREDIENTES[sku].costoActual) !== Math.round(ultimoCosto)) {
+          INGREDIENTES[sku].costoActual = ultimoCosto;
+          await invGuardarIngrediente(INGREDIENTES[sku]);
+          actualizados++;
+        }
+      } else {
+        nuevos.push({ sku, nombre: item.product, unidad: item.unit, costo: ultimoCosto });
+      }
+    }
+
+    let msg = `✓ ${actualizados} costo(s) actualizado(s) desde Toteat.`;
+    if (nuevos.length) {
+      msg += ` ${nuevos.length} insumo(s) nuevo(s) en Toteat que no tienes: ${nuevos.slice(0, 5).map(n => n.nombre).join(', ')}${nuevos.length > 5 ? '…' : ''} — agrégalos desde Edición de Datos si corresponde.`;
+    }
+    status.textContent = msg;
+    await cargarTodo();
+  } catch (e) {
+    status.textContent = '⚠ Error: ' + e.message;
+  }
 }
 
 async function ejecutarSync() {

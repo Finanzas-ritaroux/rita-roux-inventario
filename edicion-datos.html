@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Edición de Datos — Inventario Rita Roux</title>
+<link rel="stylesheet" href="theme.css">
+</head>
+<body>
+
+<header class="app-header">
+  <div>
+    <div class="logo">Rita <span>Roux</span> Inventario</div>
+    <div class="subtitle">Edición de Datos</div>
+  </div>
+  <div class="nav">
+    <a href="inicio.html">🏠 Inicio</a>
+    <a href="productos-recetas.html">📋 Productos y Recetas</a>
+    <a href="stock.html">📦 Stock</a>
+    <a href="entradas.html">🚚 Entradas</a>
+    <a href="lista-compras.html">🛒 Compras</a>
+    <a href="mermas.html">🗑 Mermas</a>
+    <a href="costos.html">💰 Costos</a>
+    <a href="estacion.html">📦 Bodega</a>
+    <a href="triangulacion.html">🔺 Triangulación</a>
+    <a href="edicion-datos.html" class="cur">✏️ Edición de Datos</a>
+  </div>
+</header>
+
+<div class="container">
+
+  <div class="info-box">
+    <b>Acá vive todo lo que Toteat NO sabe</b> y que hay que mantener a mano: las recetas (qué ingredientes lleva cada producto), los proveedores, y los datos maestros de cada ingrediente (stock mínimo, categoría, costo). Todo lo que cambies aquí se guarda al instante en el Google Sheet. Cada pestaña tiene su botón para descargar los datos en Excel.
+  </div>
+
+  <div class="row" style="gap:0;margin-bottom:-1px">
+    <button class="tabbtn active" id="tab-recetas" onclick="cambiarTabED('recetas')">📋 Recetas e Ingredientes</button>
+    <button class="tabbtn" id="tab-proveedores" onclick="cambiarTabED('proveedores')">🚚 Proveedores</button>
+    <button class="tabbtn" id="tab-stock" onclick="cambiarTabED('stock')">📦 Stock e Ingredientes</button>
+  </div>
+
+  <!-- ═══ TAB RECETAS E INGREDIENTES ═══ -->
+  <div class="panel" id="panel-recetas">
+    <div class="panel-title">
+      <span><span class="dot"></span>Productos (<span id="cnt-prod">0</span>)</span>
+      <div class="row" style="gap:8px">
+        <input type="text" id="rec-buscar" placeholder="Buscar producto o ingrediente…" style="width:240px" oninput="recetaRenderTabla()">
+        <button class="btn btn-sm" onclick="recetaAbrirNuevo()">+ Nuevo Producto</button>
+        <button class="btn-outline btn btn-sm" onclick="recetaExportarCSV()">📥 Descargar Excel</button>
+      </div>
+    </div>
+    <div class="tbl-wrap">
+      <table class="tbl">
+        <thead><tr><th>Id</th><th>Producto</th><th class="num">Ingredientes</th><th class="num">Costo Receta</th></tr></thead>
+        <tbody id="rec-tbody"><tr><td colspan="4" class="empty">Conectando…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ═══ TAB PROVEEDORES ═══ -->
+  <div class="panel" id="panel-proveedores" style="display:none">
+    <div class="panel-title">
+      <span><span class="dot"></span>Proveedores (<span id="cnt-prov">0</span>)</span>
+      <div class="row" style="gap:8px">
+        <button class="btn btn-sm" onclick="provNuevo()">+ Nuevo Proveedor</button>
+        <button class="btn-outline btn btn-sm" onclick="provExportarCSV()">📥 Descargar Excel</button>
+      </div>
+    </div>
+    <div class="info-box">El "tiempo de entrega" es cuántos días pasan desde que se hace el pedido hasta que llega — se usa en Lista de Compras para alarmar antes a proveedores que demoran más.</div>
+    <div class="tbl-wrap">
+      <table class="tbl">
+        <thead><tr><th>Proveedor</th><th class="num">Tiempo de entrega (días)</th><th>Días que entrega</th><th>Teléfono / Contacto</th><th></th></tr></thead>
+        <tbody id="prov-tbody"><tr><td colspan="5" class="empty">Conectando…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ═══ TAB STOCK E INGREDIENTES ═══ -->
+  <div class="panel" id="panel-stock" style="display:none">
+    <div class="panel-title">
+      <span><span class="dot"></span>Ingredientes (<span id="cnt-ing">0</span>)</span>
+      <div class="row" style="gap:8px">
+        <input type="text" id="ing-buscar" placeholder="Buscar ingrediente…" style="width:220px" oninput="ingRenderTabla()">
+        <button class="btn btn-sm" onclick="ingAbrirNuevo()">+ Nuevo Ingrediente</button>
+        <button class="btn-outline btn btn-sm" onclick="ingExportarCSV()">📥 Descargar Excel</button>
+      </div>
+    </div>
+    <div class="info-box">El stock actual es de solo lectura aquí (se calcula desde Movimientos) — para ajustarlo físicamente ve a la pantalla <a href="stock.html">Stock</a>. Acá se edita la info maestra: nombre, unidad, proveedor, costo, mínimo y categoría.</div>
+    <div class="tbl-wrap">
+      <table class="tbl">
+        <thead><tr><th>Ingrediente</th><th>Unidad</th><th>Proveedor</th><th class="num">Costo Actual</th><th class="num">Stock Mínimo</th><th>Categoría</th><th class="num">Stock Actual</th></tr></thead>
+        <tbody id="ing-tbody"><tr><td colspan="7" class="empty">Conectando…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL PRODUCTO / RECETA -->
+<div class="modal-overlay" id="rec-modal" onclick="if(event.target===this) recetaCerrarModal()">
+  <div class="modal wide">
+    <div class="modal-header">
+      <h3 id="rec-modal-titulo">Producto</h3>
+      <button class="close-btn" onclick="recetaCerrarModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="row" style="margin-bottom:16px">
+        <div class="field" style="width:140px"><label>Id Producto</label><input id="rec-f-pid" type="text"></div>
+        <div class="field" style="flex:1;min-width:220px"><label>Nombre Producto</label><input id="rec-f-pname" type="text"></div>
+      </div>
+      <div class="panel-title" style="border:none;padding:0;margin-bottom:10px">
+        <span>Ingredientes</span>
+        <button class="btn btn-sm btn-outline" onclick="recetaAgregarFilaIngrediente()">+ Agregar ingrediente</button>
+      </div>
+      <div id="rec-filas-ing"></div>
+      <div class="row" style="margin-top:20px;justify-content:space-between">
+        <button class="btn btn-danger btn-sm" id="rec-btn-eliminar" onclick="recetaEliminar()">Eliminar producto</button>
+        <div class="row" style="gap:8px">
+          <button class="btn-outline btn" onclick="recetaCerrarModal()">Cancelar</button>
+          <button class="btn" onclick="recetaGuardar()">Guardar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL INGREDIENTE -->
+<div class="modal-overlay" id="ing-modal" onclick="if(event.target===this) ingCerrarModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="ing-modal-titulo">Nuevo Ingrediente</h3>
+      <button class="close-btn" onclick="ingCerrarModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="row" style="margin-bottom:14px">
+        <div class="field" style="width:140px"><label>Id Ingrediente</label><input type="text" id="ing-f-id"></div>
+        <div class="field" style="flex:1;min-width:180px"><label>Nombre</label><input type="text" id="ing-f-nombre"></div>
+      </div>
+      <div class="row" style="margin-bottom:14px">
+        <div class="field" style="width:100px"><label>Unidad</label><input type="text" id="ing-f-unidad" placeholder="kg, L, UN…"></div>
+        <div class="field" style="width:160px"><label>Proveedor</label><input type="text" id="ing-f-proveedor" list="dl-proveedores"></div>
+        <div class="field" style="width:120px"><label>Costo Actual</label><input type="number" id="ing-f-costo"></div>
+      </div>
+      <div class="row" style="margin-bottom:14px">
+        <div class="field" style="width:130px"><label>Stock Mínimo</label><input type="number" id="ing-f-minimo"></div>
+        <div class="field" style="width:160px"><label>Categoría</label>
+          <select id="ing-f-seguimiento">
+            <option value="CRITICO">🔴 Crítico</option>
+            <option value="NORMAL">⚪ Normal</option>
+            <option value="NO_CONTAR">🚫 No contar</option>
+          </select>
+        </div>
+        <div class="field" style="width:160px"><label>Estación (quién lo usa)</label>
+          <select id="ing-f-estacion">
+            <option value="TODOS">Todos</option>
+            <option value="BARRA">☕ Barra</option>
+            <option value="COCINA">👩‍🍳 Cocina</option>
+            <option value="GAZON">🧾 Meseros</option>
+          </select>
+        </div>
+      </div>
+      <div class="row" style="justify-content:space-between;margin-top:10px">
+        <button class="btn btn-danger btn-sm" id="ing-btn-eliminar" onclick="ingEliminar()" style="display:none">Eliminar ingrediente</button>
+        <div class="row" style="gap:8px">
+          <button class="btn-outline btn" onclick="ingCerrarModal()">Cancelar</button>
+          <button class="btn" onclick="ingGuardar()">Guardar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<datalist id="dl-ingredientes"></datalist>
+<datalist id="dl-proveedores"></datalist>
+
+<footer class="app-footer">Inventario Rita Roux Café · datos en Google Sheets · próximamente: carga masiva desde CSV</footer>
+
+<script src="gsheets.js"></script>
+<script>
+let RECETAS = {};
+let INGREDIENTES = {};
+let PROVEEDORES = {};
+let STOCK = {};
+let pidEditando = null;
+let idIngEditando = null;
+
+window.addEventListener('DOMContentLoaded', () => gsInit(onAuth));
+
+async function onAuth() {
+  await invInitSheet();
+  await cargarBase();
+}
+
+// Carga base (sin movimientos) — lo que necesitan los tabs de Recetas y Proveedores.
+// Se ejecuta siempre al entrar a la página. Rápido incluso con muchos datos de Toteat.
+async function cargarBase() {
+  RECETAS     = await invCargarRecetas();
+  INGREDIENTES = await invSembrarIngredientesSiVacio(RECETAS);
+  PROVEEDORES  = await invSembrarProveedoresDesdeIngredientes(INGREDIENTES);
+  llenarDatalists();
+  recetaRenderTabla();
+  provRenderTabla();
+  ingRenderTabla(); // muestra stock como — hasta que se cargue
+}
+
+// Carga stock (movimientos → invCalcularStock).
+// Solo se ejecuta cuando el usuario abre el tab "Stock e Ingredientes".
+// Los Movimientos crecen con cada sync de Toteat, por eso se carga bajo demanda y no al abrir.
+let _stockCargado = false;
+async function cargarStock() {
+  if (_stockCargado) return;
+  document.getElementById('ing-tbody').innerHTML = '<tr><td colspan="7" class="empty">Calculando stock desde movimientos…</td></tr>';
+  const movimientos = await invCargarMovimientos();
+  STOCK = invCalcularStock(movimientos);
+  _stockCargado = true;
+  ingRenderTabla();
+}
+
+// Alias para compatibilidad con operaciones CRUD que llaman cargarTodo()
+async function cargarTodo() {
+  _stockCargado = false;
+  await cargarBase();
+  // Si el tab de stock estaba activo, refrescar también el stock
+  if (document.getElementById('panel-stock').style.display !== 'none') {
+    await cargarStock();
+  }
+}
+
+function llenarDatalists() {
+  document.getElementById('dl-ingredientes').innerHTML = Object.values(INGREDIENTES).map(i => `<option value="${i.id}">${i.id} — ${i.nombre}</option>`).join('');
+  document.getElementById('dl-proveedores').innerHTML = Object.keys(PROVEEDORES).map(n => `<option value="${n}">`).join('');
+}
+
+function cambiarTabED(tab) {
+  ['recetas', 'proveedores', 'stock'].forEach(t => {
+    document.getElementById('panel-' + t).style.display = t === tab ? 'block' : 'none';
+    document.getElementById('tab-' + t).classList.toggle('active', t === tab);
+  });
+  if (tab === 'stock') cargarStock(); // lazy: se carga al abrir el tab, no antes
+}
+
+// Exporta cualquier tabla a un .csv con BOM UTF-8 (Excel lo abre directo, con tildes correctas).
+function descargarCSV(filename, headers, rows) {
+  const csvLines = [headers, ...rows].map(r => r.map(v => {
+    const s = String(v ?? '');
+    return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+  }).join(','));
+  const csv = '﻿' + csvLines.join('\r\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+// ═══════════════════════════ RECETAS E INGREDIENTES ═══════════════════════════
+function recetaCostoReceta(prod) {
+  return (prod.ing || []).reduce((s, i) => s + (parseFloat(String(i.qty).replace(',', '.')) || 0) * (i.costoKilo || 0), 0);
+}
+
+function recetaRenderTabla() {
+  const q = (document.getElementById('rec-buscar').value || '').toLowerCase();
+  const entries = Object.entries(RECETAS).filter(([pid, p]) => {
+    if (!q) return true;
+    if (pid.toLowerCase().includes(q) || (p.name || '').toLowerCase().includes(q)) return true;
+    return (p.ing || []).some(i => (i.name || '').toLowerCase().includes(q));
+  }).sort((a, b) => (a[1].name || '').localeCompare(b[1].name || ''));
+
+  document.getElementById('cnt-prod').textContent = Object.keys(RECETAS).length;
+  document.getElementById('rec-tbody').innerHTML = entries.map(([pid, p]) => `
+    <tr onclick="recetaAbrirEditar('${pid}')">
+      <td>${pid}</td><td>${p.name || ''}</td>
+      <td class="num">${(p.ing || []).length}</td>
+      <td class="num">$ ${Math.round(recetaCostoReceta(p)).toLocaleString('es-CL')}</td>
+    </tr>`).join('') || '<tr><td colspan="4" class="empty">Sin productos. Crea el primero con "+ Nuevo Producto".</td></tr>';
+}
+
+function recetaAbrirNuevo() {
+  pidEditando = null;
+  document.getElementById('rec-modal-titulo').textContent = 'Nuevo Producto';
+  document.getElementById('rec-f-pid').value = '';
+  document.getElementById('rec-f-pid').disabled = false;
+  document.getElementById('rec-f-pname').value = '';
+  document.getElementById('rec-btn-eliminar').style.display = 'none';
+  document.getElementById('rec-filas-ing').innerHTML = '';
+  recetaAgregarFilaIngrediente();
+  document.getElementById('rec-modal').classList.add('open');
+}
+
+function recetaAbrirEditar(pid) {
+  pidEditando = pid;
+  const p = RECETAS[pid];
+  document.getElementById('rec-modal-titulo').textContent = p.name || pid;
+  document.getElementById('rec-f-pid').value = pid;
+  document.getElementById('rec-f-pid').disabled = true;
+  document.getElementById('rec-f-pname').value = p.name || '';
+  document.getElementById('rec-btn-eliminar').style.display = 'inline-block';
+  document.getElementById('rec-filas-ing').innerHTML = '';
+  (p.ing || []).forEach(i => recetaAgregarFilaIngrediente(i));
+  if (!(p.ing || []).length) recetaAgregarFilaIngrediente();
+  document.getElementById('rec-modal').classList.add('open');
+}
+
+function recetaCerrarModal() { document.getElementById('rec-modal').classList.remove('open'); }
+
+function recetaAgregarFilaIngrediente(ing) {
+  const div = document.createElement('div');
+  div.className = 'row ing-row';
+  div.style = 'margin-bottom:8px;align-items:flex-end';
+  div.innerHTML = `
+    <div class="field" style="width:160px"><label>Id Ingrediente</label><input class="ing-id" list="dl-ingredientes" value="${ing ? ing.id : ''}" onchange="recetaAutocompletar(this)"></div>
+    <div class="field" style="flex:1;min-width:160px"><label>Nombre</label><input class="ing-name" value="${ing ? ing.name : ''}"></div>
+    <div class="field" style="width:90px"><label>Cantidad</label><input class="ing-qty" value="${ing ? ing.qty : ''}"></div>
+    <div class="field" style="width:75px"><label>Unidad</label><input class="ing-unit" value="${ing ? ing.unit : ''}"></div>
+    <div class="field" style="width:110px"><label>Costo/Kilo</label><input class="ing-costo" type="number" value="${ing ? ing.costoKilo || '' : ''}"></div>
+    <div class="field" style="width:140px"><label>Proveedor</label><input class="ing-prov" value="${ing ? ing.proveedor || '' : ''}"></div>
+    <span class="tag-del" title="Quitar" onclick="this.closest('.ing-row').remove()">✕</span>
+  `;
+  document.getElementById('rec-filas-ing').appendChild(div);
+}
+
+function recetaAutocompletar(input) {
+  const ing = INGREDIENTES[input.value.trim()];
+  if (!ing) return;
+  const row = input.closest('.ing-row');
+  if (!row.querySelector('.ing-name').value) row.querySelector('.ing-name').value = ing.nombre;
+  if (!row.querySelector('.ing-unit').value) row.querySelector('.ing-unit').value = ing.unidad;
+  if (!row.querySelector('.ing-costo').value) row.querySelector('.ing-costo').value = ing.costoActual || '';
+  if (!row.querySelector('.ing-prov').value) row.querySelector('.ing-prov').value = ing.proveedor || '';
+}
+
+async function recetaGuardar() {
+  const pid = document.getElementById('rec-f-pid').value.trim();
+  const pname = document.getElementById('rec-f-pname').value.trim();
+  if (!pid || !pname) { alert('Id y Nombre de producto son obligatorios.'); return; }
+  if (!pidEditando && RECETAS[pid]) { alert('Ya existe un producto con ese Id.'); return; }
+
+  const ing = Array.from(document.querySelectorAll('#rec-filas-ing .ing-row')).map(row => ({
+    id: row.querySelector('.ing-id').value.trim(),
+    name: row.querySelector('.ing-name').value.trim(),
+    qty: row.querySelector('.ing-qty').value.trim(),
+    unit: row.querySelector('.ing-unit').value.trim(),
+    costoKilo: parseFloat(row.querySelector('.ing-costo').value) || 0,
+    proveedor: row.querySelector('.ing-prov').value.trim(),
+  })).filter(i => i.id);
+
+  if (pidEditando && pidEditando !== pid) delete RECETAS[pidEditando];
+  RECETAS[pid] = { name: pname, ing };
+
+  await invGuardarRecetas(RECETAS);
+  await cargarTodo();
+  recetaCerrarModal();
+}
+
+async function recetaEliminar() {
+  if (!pidEditando) return;
+  if (!confirm(`¿Eliminar "${RECETAS[pidEditando].name}" y su receta? Esta acción no se puede deshacer.`)) return;
+  delete RECETAS[pidEditando];
+  await invGuardarRecetas(RECETAS);
+  await cargarTodo();
+  recetaCerrarModal();
+}
+
+function recetaExportarCSV() {
+  const headers = ['Id Producto', 'Nombre Producto', 'Id Ingrediente', 'Nombre Ingrediente', 'Cantidad', 'Unidad', 'Costo Kilo', 'Proveedor'];
+  const rows = recetasObjAFilas(RECETAS);
+  descargarCSV(`recetas-rita-roux-${new Date().toISOString().slice(0, 10)}.csv`, headers, rows);
+}
+
+// ═══════════════════════════════ PROVEEDORES ═══════════════════════════════════
+function provRenderTabla() {
+  const nombres = Object.keys(PROVEEDORES).sort((a, b) => a.localeCompare(b));
+  document.getElementById('cnt-prov').textContent = nombres.length;
+  document.getElementById('prov-tbody').innerHTML = nombres.map(n => {
+    const p = PROVEEDORES[n];
+    const ne = n.replace(/'/g, "\\'");
+    return `
+    <tr>
+      <td>${n}</td>
+      <td class="num"><input type="number" value="${p.tiempoEntregaDias || 0}" style="width:80px" onchange="provActualizar('${ne}', 'tiempoEntregaDias', this.value)"></td>
+      <td><input type="text" value="${p.diasQueEntrega || ''}" placeholder="ej. Lunes y Jueves" style="width:160px" onchange="provActualizar('${ne}', 'diasQueEntrega', this.value)"></td>
+      <td><input type="text" value="${p.telefono || ''}" placeholder="Teléfono / email" style="width:180px" onchange="provActualizar('${ne}', 'telefono', this.value)"></td>
+      <td>
+        <button class="btn btn-sm btn-outline" onclick="provRenombrar('${ne}')">✏ Renombrar</button>
+        <button class="btn btn-sm btn-danger" onclick="provEliminar('${ne}')">🗑</button>
+      </td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="5" class="empty">Sin proveedores todavía.</td></tr>';
+}
+
+async function provActualizar(nombre, campo, valor) {
+  const prov = PROVEEDORES[nombre];
+  prov[campo] = campo === 'tiempoEntregaDias' ? (parseFloat(valor) || 0) : valor;
+  await invGuardarProveedor(prov);
+}
+
+async function provNuevo() {
+  const nombre = prompt('Nombre del nuevo proveedor:');
+  if (!nombre || !nombre.trim()) return;
+  if (PROVEEDORES[nombre.trim()]) { alert('Ya existe un proveedor con ese nombre.'); return; }
+  await invGuardarProveedor({ nombre: nombre.trim(), tiempoEntregaDias: 0, diasQueEntrega: '', telefono: '' });
+  PROVEEDORES = await invCargarProveedores();
+  provRenderTabla();
+  llenarDatalists();
+}
+
+async function provRenombrar(nombreViejo) {
+  const nombreNuevo = prompt(`Nuevo nombre para "${nombreViejo}":`, nombreViejo);
+  if (!nombreNuevo || !nombreNuevo.trim() || nombreNuevo.trim() === nombreViejo) return;
+  const nuevo = nombreNuevo.trim();
+  if (PROVEEDORES[nuevo]) { alert('Ya existe un proveedor con ese nombre — no se puede fusionar desde aquí.'); return; }
+
+  const afectados = Object.values(INGREDIENTES).filter(i => i.proveedor === nombreViejo);
+  if (!confirm(`Esto va a renombrar el proveedor y actualizar ${afectados.length} ingrediente(s) que lo usan. ¿Continuar?`)) return;
+
+  const prov = PROVEEDORES[nombreViejo];
+  await invGuardarProveedor({ ...prov, nombre: nuevo });
+  for (const ing of afectados) { ing.proveedor = nuevo; await invGuardarIngrediente(ing); }
+
+  const todas = await invCargarProveedores();
+  delete todas[nombreViejo];
+  const filas = Object.values(todas).map(p => [p.nombre, p.tiempoEntregaDias || 0, p.diasQueEntrega || '', p.telefono || '', p.contacto || '']);
+  await gsClear(`${TAB.PROVEEDORES}!A2:E`);
+  if (filas.length) await gsAppend(`${TAB.PROVEEDORES}!A2:E`, filas);
+
+  await cargarTodo();
+}
+
+async function provEliminar(nombre) {
+  const usado = Object.values(INGREDIENTES).some(i => i.proveedor === nombre);
+  if (usado) { alert(`No se puede eliminar: hay ingredientes que todavía tienen "${nombre}" como proveedor. Reasígnalos primero en la pestaña Stock o usa "Renombrar".`); return; }
+  if (!confirm(`¿Eliminar el proveedor "${nombre}"?`)) return;
+
+  const todas = await invCargarProveedores();
+  delete todas[nombre];
+  const filas = Object.values(todas).map(p => [p.nombre, p.tiempoEntregaDias || 0, p.diasQueEntrega || '', p.telefono || '', p.contacto || '']);
+  await gsClear(`${TAB.PROVEEDORES}!A2:E`);
+  if (filas.length) await gsAppend(`${TAB.PROVEEDORES}!A2:E`, filas);
+
+  PROVEEDORES = await invCargarProveedores();
+  provRenderTabla();
+}
+
+function provExportarCSV() {
+  const headers = ['Nombre', 'Tiempo Entrega (días)', 'Días que entrega', 'Teléfono / Contacto'];
+  const rows = Object.values(PROVEEDORES).map(p => [p.nombre, p.tiempoEntregaDias || 0, p.diasQueEntrega || '', p.telefono || '']);
+  descargarCSV(`proveedores-rita-roux-${new Date().toISOString().slice(0, 10)}.csv`, headers, rows);
+}
+
+// ═══════════════════════════ STOCK E INGREDIENTES (maestro) ═══════════════════════════
+const SEG_LABEL = { CRITICO: '🔴 Crítico', NORMAL: '⚪ Normal', NO_CONTAR: '🚫 No contar' };
+
+function ingRenderTabla() {
+  const q = (document.getElementById('ing-buscar').value || '').toLowerCase();
+  let filas = Object.values(INGREDIENTES);
+  if (q) filas = filas.filter(i => i.id.toLowerCase().includes(q) || i.nombre.toLowerCase().includes(q));
+  filas.sort((a, b) => a.nombre.localeCompare(b.nombre));
+
+  document.getElementById('cnt-ing').textContent = filas.length;
+  document.getElementById('ing-tbody').innerHTML = filas.map(i => `
+    <tr onclick="ingAbrirEditar('${i.id}')">
+      <td><b>${i.nombre}</b></td>
+      <td>${i.unidad}</td>
+      <td>${i.proveedor || '—'}</td>
+      <td class="num">$ ${Math.round(i.costoActual || 0).toLocaleString('es-CL')}</td>
+      <td class="num">${i.stockMinimo || '—'}</td>
+      <td>${SEG_LABEL[i.seguimiento] || i.seguimiento || '—'}</td>
+      <td class="num">${_stockCargado ? (STOCK[i.id] || 0).toLocaleString('es-CL', { maximumFractionDigits: 3 }) : '<span style="color:var(--light);font-size:11px">cargando…</span>'}</td>
+    </tr>`).join('') || '<tr><td colspan="7" class="empty">Sin ingredientes todavía.</td></tr>';
+}
+
+function ingAbrirNuevo() {
+  idIngEditando = null;
+  document.getElementById('ing-modal-titulo').textContent = 'Nuevo Ingrediente';
+  ['id','nombre','unidad','proveedor','costo','minimo'].forEach(f => document.getElementById(`ing-f-${f}`).value = '');
+  document.getElementById('ing-f-id').disabled = false;
+  document.getElementById('ing-f-seguimiento').value = 'NORMAL';
+  document.getElementById('ing-f-estacion').value = 'TODOS';
+  document.getElementById('ing-btn-eliminar').style.display = 'none';
+  document.getElementById('ing-modal').classList.add('open');
+}
+
+function ingAbrirEditar(id) {
+  const i = INGREDIENTES[id];
+  if (!i) return;
+  idIngEditando = id;
+  document.getElementById('ing-modal-titulo').textContent = i.nombre;
+  document.getElementById('ing-f-id').value = i.id;
+  document.getElementById('ing-f-id').disabled = true;
+  document.getElementById('ing-f-nombre').value = i.nombre;
+  document.getElementById('ing-f-unidad').value = i.unidad;
+  document.getElementById('ing-f-proveedor').value = i.proveedor || '';
+  document.getElementById('ing-f-costo').value = i.costoActual || '';
+  document.getElementById('ing-f-minimo').value = i.stockMinimo || '';
+  document.getElementById('ing-f-seguimiento').value = i.seguimiento || 'NORMAL';
+  document.getElementById('ing-f-estacion').value = i.estacion || 'TODOS';
+  document.getElementById('ing-btn-eliminar').style.display = 'inline-block';
+  document.getElementById('ing-modal').classList.add('open');
+}
+
+function ingCerrarModal() { document.getElementById('ing-modal').classList.remove('open'); }
+
+async function ingGuardar() {
+  const id = document.getElementById('ing-f-id').value.trim();
+  const nombre = document.getElementById('ing-f-nombre').value.trim();
+  if (!id || !nombre) { alert('Id y Nombre son obligatorios.'); return; }
+  if (!idIngEditando && INGREDIENTES[id]) { alert('Ya existe un ingrediente con ese Id.'); return; }
+
+  const ing = {
+    id, nombre,
+    unidad: document.getElementById('ing-f-unidad').value.trim(),
+    proveedor: document.getElementById('ing-f-proveedor').value.trim(),
+    costoActual: parseFloat(document.getElementById('ing-f-costo').value) || 0,
+    stockMinimo: parseFloat(document.getElementById('ing-f-minimo').value) || 0,
+    seguimiento: document.getElementById('ing-f-seguimiento').value,
+    estacion: document.getElementById('ing-f-estacion').value,
+  };
+  await invGuardarIngrediente(ing);
+  ingCerrarModal();
+  await cargarTodo();
+}
+
+async function ingEliminar() {
+  if (!idIngEditando) return;
+  const productosQueLoUsan = Object.entries(RECETAS).filter(([, p]) => (p.ing || []).some(x => x.id === idIngEditando)).map(([, p]) => p.name);
+  if (productosQueLoUsan.length) {
+    alert(`No se puede eliminar: se usa en ${productosQueLoUsan.length} producto(s) (${productosQueLoUsan.slice(0, 5).join(', ')}${productosQueLoUsan.length > 5 ? '…' : ''}). Quítalo de esas recetas primero.`);
+    return;
+  }
+  if (!confirm(`¿Eliminar "${INGREDIENTES[idIngEditando].nombre}" del maestro de ingredientes? El historial de movimientos pasados no se borra.`)) return;
+
+  delete INGREDIENTES[idIngEditando];
+  const filas = Object.values(INGREDIENTES).map(i => [i.id, i.nombre, i.unidad, i.stockMinimo, i.costoActual, i.proveedor, i.seguimiento]);
+  await gsClear(`${TAB.INGREDIENTES}!A2:G`);
+  if (filas.length) await gsAppend(`${TAB.INGREDIENTES}!A2:G`, filas);
+
+  ingCerrarModal();
+  await cargarTodo();
+}
+
+function ingExportarCSV() {
+  const headers = ['Id Ingrediente', 'Nombre', 'Unidad', 'Proveedor', 'Costo Actual', 'Stock Mínimo', 'Categoría', 'Stock Actual'];
+  const rows = Object.values(INGREDIENTES).map(i => [i.id, i.nombre, i.unidad, i.proveedor || '', i.costoActual || 0, i.stockMinimo || 0, SEG_LABEL[i.seguimiento] || i.seguimiento || '', STOCK[i.id] || 0]);
+  descargarCSV(`ingredientes-rita-roux-${new Date().toISOString().slice(0, 10)}.csv`, headers, rows);
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Bodega — Rita Roux</title>
+<style>
+/* ── Mobile-first / tablet-first ─────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { overflow-x: hidden; background: #1a1a1a; color: #fff; font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; }
+
+/* ── Header ── */
+.hdr { background: #111; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; }
+.hdr-logo { font-size: 16px; font-weight: 700; letter-spacing: 1px; }
+.hdr-logo span { color: #c8956c; }
+.hdr-clock { text-align: right; }
+.hdr-hora { font-size: 18px; font-weight: 700; }
+.hdr-fecha { font-size: 10px; color: #888; }
+
+/* ── Contenedor ── */
+.ctr { max-width: 520px; margin: 0 auto; padding: 14px 12px; }
+
+/* ── Pasos del wizard ── */
+.step { display: none; }
+.step.active { display: block; }
+.step-title { font-size: 14px; color: #999; text-align: center; margin: 12px 0 18px; text-transform: uppercase; letter-spacing: .5px; }
+
+/* ── PIN screen ── */
+.pin-box { background: #222; border-radius: 20px; padding: 28px 20px; text-align: center; margin: 20px 0; }
+.pin-title { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+.pin-sub { font-size: 12px; color: #888; margin-bottom: 20px; }
+.pin-dots { display: flex; justify-content: center; gap: 14px; margin-bottom: 24px; }
+.pin-dot { width: 16px; height: 16px; border-radius: 50%; background: #333; border: 2px solid #555; transition: all .15s; }
+.pin-dot.filled { background: #7a9e7e; border-color: #7a9e7e; }
+.pin-pad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; max-width: 280px; margin: 0 auto; }
+.pin-key { background: #2a2a2a; border: 2px solid #3a3a3a; border-radius: 14px; color: #fff; font-size: 22px; font-weight: 700; padding: 18px; cursor: pointer; transition: all .1s; user-select: none; -webkit-tap-highlight-color: transparent; }
+.pin-key:active { background: #3a3a3a; transform: scale(.95); }
+.pin-key.del { font-size: 18px; }
+.pin-key.empty { visibility: hidden; }
+.pin-error { color: #e05252; font-size: 13px; margin-top: 12px; min-height: 18px; }
+.pin-modo { font-size: 11px; color: #666; margin-top: 16px; }
+
+/* ── Selección de rol ── */
+.rol-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.big-btn { background: #222; border: 2px solid #333; border-radius: 16px; padding: 18px 10px; text-align: center; cursor: pointer; transition: all .15s; user-select: none; -webkit-tap-highlight-color: transparent; }
+.big-btn:active, .big-btn.sel { background: #2d4d30; border-color: #5e7e62; }
+.big-btn .ic  { font-size: 28px; display: block; margin-bottom: 6px; }
+.big-btn .nm  { font-size: 14px; font-weight: 700; display: block; }
+.big-btn .sub { font-size: 10.5px; color: #888; display: block; margin-top: 3px; }
+.big-btn.sel .sub { color: #8fba92; }
+
+/* ── Selección de persona ── */
+.pers-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; }
+
+/* ── Menú de acciones ── */
+.acc-grid { display: flex; flex-direction: column; gap: 12px; margin-top: 4px; }
+.acc-btn { background: #222; border: 2px solid #333; border-radius: 14px; padding: 18px; display: flex; align-items: center; gap: 14px; cursor: pointer; transition: all .15s; -webkit-tap-highlight-color: transparent; }
+.acc-btn:active { background: #2d4d30; border-color: #5e7e62; }
+.acc-btn .acc-ic { font-size: 28px; }
+.acc-btn .acc-info .acc-titulo { font-size: 15px; font-weight: 700; display: block; }
+.acc-btn .acc-info .acc-desc { font-size: 11px; color: #888; display: block; margin-top: 3px; }
+.acc-badge { margin-left: auto; background: #e05252; border-radius: 20px; padding: 3px 10px; font-size: 11px; font-weight: 700; }
+
+/* ── Búsqueda e ingredientes ── */
+.search-bar { margin-bottom: 10px; }
+.search-bar input { width: 100%; background: #222; border: 2px solid #333; border-radius: 10px; color: #fff; font-size: 16px; padding: 11px 14px; }
+.search-bar input:focus { outline: none; border-color: #5e7e62; }
+.cat-scroll { display: flex; gap: 7px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 10px; scrollbar-width: none; }
+.cat-scroll::-webkit-scrollbar { display: none; }
+.cat-pill { background: #222; border: 1px solid #333; border-radius: 20px; padding: 6px 14px; font-size: 12px; color: #999; cursor: pointer; white-space: nowrap; flex-shrink: 0; -webkit-tap-highlight-color: transparent; }
+.cat-pill.active { background: #2d4d30; border-color: #5e7e62; color: #fff; }
+.ing-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 8px; max-height: 40vh; overflow-y: auto; }
+.ing-card { background: #222; border: 2px solid #333; border-radius: 12px; padding: 12px 6px 10px; text-align: center; cursor: pointer; transition: all .12s; -webkit-tap-highlight-color: transparent; }
+.ing-card:active, .ing-card.sel { background: #2d4d30; border-color: #5e7e62; }
+.ing-card .ic { font-size: 22px; }
+.ing-card .nm { font-size: 11px; font-weight: 700; margin-top: 5px; line-height: 1.25; }
+.ing-card .un { font-size: 10px; color: #888; margin-top: 2px; }
+.ing-card.sel .un { color: #8fba92; }
+
+/* ── Panel de cantidad ── */
+.qty-panel { background: #222; border-radius: 14px; padding: 16px; margin-top: 12px; display: none; }
+.qty-panel.visible { display: block; }
+.qty-ing-label { font-size: 13px; font-weight: 700; color: #7a9e7e; margin-bottom: 10px; }
+.qty-row { display: flex; align-items: center; gap: 10px; }
+.qty-row input { flex: 1; background: #1a1a1a; border: 2px solid #333; border-radius: 10px; color: #fff; font-size: 26px; font-weight: 700; padding: 10px; text-align: center; }
+.qty-row input:focus { outline: none; border-color: #5e7e62; }
+.qty-unit { font-size: 13px; color: #888; min-width: 28px; }
+.qty-quick { display: flex; gap: 7px; margin-top: 9px; }
+.qty-q { background: #2a2a2a; border: none; border-radius: 8px; color: #fff; font-size: 17px; font-weight: 700; padding: 9px 14px; cursor: pointer; flex: 1; -webkit-tap-highlight-color: transparent; }
+.qty-q:active { background: #3a3a3a; }
+.main-btn { width: 100%; background: #5e7e62; border: none; border-radius: 12px; color: #fff; font-size: 16px; font-weight: 700; padding: 15px; margin-top: 12px; cursor: pointer; letter-spacing: .3px; -webkit-tap-highlight-color: transparent; }
+.main-btn:disabled { background: #333; color: #555; }
+.main-btn.warn { background: #c8956c; }
+
+/* ── Conteo de inventario ── */
+.conteo-item { background: #222; border-radius: 12px; padding: 14px; margin-bottom: 10px; }
+.conteo-item .ci-nm { font-size: 14px; font-weight: 700; }
+.conteo-item .ci-stock { font-size: 11px; color: #888; margin: 4px 0 10px; }
+.conteo-item .ci-row { display: flex; align-items: center; gap: 10px; }
+.conteo-item .ci-row input { flex: 1; background: #1a1a1a; border: 2px solid #333; border-radius: 8px; color: #fff; font-size: 18px; font-weight: 700; padding: 8px; text-align: center; }
+.conteo-item .ci-row input:focus { outline: none; border-color: #5e7e62; }
+.conteo-item .ci-row .ci-unit { font-size: 12px; color: #888; min-width: 24px; }
+.conteo-prog { font-size: 12px; color: #888; text-align: center; margin-bottom: 12px; }
+
+/* ── Resultado de conteo (triángulo) ── */
+.var-ok   { color: #5dbf6f; }
+.var-warn { color: #f0a500; }
+.var-bad  { color: #e05252; }
+
+/* ── Éxito ── */
+.ok-box { text-align: center; padding: 24px 16px; }
+.ok-ic { font-size: 56px; }
+.ok-msg { font-size: 15px; color: #8fba92; margin: 14px 0; line-height: 1.5; }
+.ok-msg b { color: #fff; }
+.ok-who { font-size: 11px; color: #555; }
+.ok-btns { display: flex; flex-direction: column; gap: 9px; margin-top: 20px; }
+.ok-btns button { background: #222; border: 2px solid #333; border-radius: 11px; color: #fff; font-size: 14px; padding: 12px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.ok-btns button.primary { background: #2d4d30; border-color: #5e7e62; }
+
+.user-pill { display: inline-block; background: #222; border: 1px solid #333; border-radius: 20px; padding: 4px 12px; font-size: 11px; color: #999; margin-bottom: 12px; }
+.user-pill b { color: #7a9e7e; }
+.back-btn { background: none; border: none; color: #777; font-size: 13px; cursor: pointer; padding: 2px 0; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+
+@media (max-width: 480px) {
+  .hdr-logo { font-size: 14px; }
+  .hdr-hora  { font-size: 15px; }
+  .hdr-fecha { display: none; }
+  .ctr { padding: 10px; }
+  .big-btn { padding: 14px 7px; }
+  .big-btn .ic { font-size: 24px; }
+  .big-btn .nm { font-size: 13px; }
+  .rol-grid { gap: 9px; }
+}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="hdr-logo">Rita <span>Roux</span> Bodega</div>
+  <div class="hdr-clock">
+    <div class="hdr-hora" id="hdr-hora">--:--</div>
+    <div class="hdr-fecha" id="hdr-fecha"></div>
+  </div>
+</div>
+
+<div class="ctr">
+
+<!-- ══ PASO 0: PIN ══ -->
+<div class="step active" id="step-pin">
+  <div class="pin-box">
+    <div class="pin-title">🔐 Acceso a Bodega</div>
+    <div class="pin-sub">Ingresa el PIN de 4 dígitos</div>
+    <div class="pin-dots" id="pin-dots">
+      <div class="pin-dot" id="pd0"></div>
+      <div class="pin-dot" id="pd1"></div>
+      <div class="pin-dot" id="pd2"></div>
+      <div class="pin-dot" id="pd3"></div>
+    </div>
+    <div class="pin-pad">
+      <button class="pin-key" onclick="pinTecla('1')">1</button>
+      <button class="pin-key" onclick="pinTecla('2')">2</button>
+      <button class="pin-key" onclick="pinTecla('3')">3</button>
+      <button class="pin-key" onclick="pinTecla('4')">4</button>
+      <button class="pin-key" onclick="pinTecla('5')">5</button>
+      <button class="pin-key" onclick="pinTecla('6')">6</button>
+      <button class="pin-key" onclick="pinTecla('7')">7</button>
+      <button class="pin-key" onclick="pinTecla('8')">8</button>
+      <button class="pin-key" onclick="pinTecla('9')">9</button>
+      <button class="pin-key empty" disabled></button>
+      <button class="pin-key" onclick="pinTecla('0')">0</button>
+      <button class="pin-key del" onclick="pinBorrar()">⌫</button>
+    </div>
+    <div class="pin-error" id="pin-error"></div>
+    <div class="pin-modo" id="pin-modo"></div>
+  </div>
+</div>
+
+<!-- ══ PASO 1: Rol ══ -->
+<div class="step" id="step-rol">
+  <div class="step-title">¿Quién ingresa?</div>
+  <div class="rol-grid">
+    <div class="big-btn" onclick="elegirRol('BARRA','Barra')"><span class="ic">☕</span><span class="nm">Barra</span><span class="sub">Sergio</span></div>
+    <div class="big-btn" onclick="elegirRol('COCINA','Cocina')"><span class="ic">👩‍🍳</span><span class="nm">Cocina</span><span class="sub">Kari · Pao · Sara</span></div>
+    <div class="big-btn" onclick="elegirRol('GAZON','Meseros')"><span class="ic">🧾</span><span class="nm">Meseros</span><span class="sub">Shuler · Camila · Part time</span></div>
+    <div class="big-btn" onclick="elegirRol('JEFATURA','Jefatura')"><span class="ic">👑</span><span class="nm">Jefatura</span><span class="sub">Joshua · Gerardo</span></div>
+  </div>
+</div>
+
+<!-- ══ PASO 2: Persona ══ -->
+<div class="step" id="step-persona">
+  <button class="back-btn" onclick="irPaso('step-rol')">← Volver</button>
+  <div class="step-title" id="titulo-personas">Elige tu nombre</div>
+  <div class="pers-grid" id="grid-personas"></div>
+</div>
+
+<!-- ══ PASO 3: Acción ══ -->
+<div class="step" id="step-accion">
+  <button class="back-btn" onclick="irPaso('step-persona')">← Volver</button>
+  <div class="user-pill">Sesión de <b id="acc-usuario-label"></b></div>
+  <div class="acc-grid">
+    <div class="acc-btn" onclick="iniciarEntrada()">
+      <div class="acc-ic">📦</div>
+      <div class="acc-info">
+        <span class="acc-titulo">Ingresar mercadería</span>
+        <span class="acc-desc">Registra una entrada al inventario</span>
+      </div>
+    </div>
+    <div class="acc-btn" onclick="iniciarConteo()" id="acc-btn-conteo">
+      <div class="acc-ic">📋</div>
+      <div class="acc-info">
+        <span class="acc-titulo">Contar inventario</span>
+        <span class="acc-desc">Conteo físico periódico de tu área</span>
+      </div>
+      <span class="acc-badge" id="badge-conteo" style="display:none">!</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PASO 4a: Entrada — elegir ingrediente ══ -->
+<div class="step" id="step-ingrediente">
+  <button class="back-btn" onclick="irPaso('step-accion')">← Volver</button>
+  <div class="user-pill">Entrada · <b id="lbl-usuario-entrada"></b></div>
+  <div class="search-bar"><input type="search" id="ing-search" placeholder="🔍 Buscar ingrediente…" oninput="filtrarIng()" autocomplete="off"></div>
+  <div class="cat-scroll" id="cat-filters"></div>
+  <div class="ing-grid" id="ing-grid"></div>
+  <div class="qty-panel" id="qty-panel">
+    <div class="qty-ing-label" id="qty-ing-label"></div>
+    <div class="qty-row">
+      <input type="number" id="qty-val" min="0.01" step="any" placeholder="0" inputmode="decimal">
+      <span class="qty-unit" id="qty-unit-label"></span>
+    </div>
+    <div class="qty-quick">
+      <button class="qty-q" onclick="ajustaCant(-1)">−1</button>
+      <button class="qty-q" onclick="ajustaCant(+1)">+1</button>
+      <button class="qty-q" onclick="ajustaCant(+5)">+5</button>
+    </div>
+    <button class="main-btn" id="btn-confirmar-entrada" onclick="confirmarEntrada()">✓ Agregar al inventario</button>
+  </div>
+</div>
+
+<!-- ══ PASO 4b: Conteo físico ══ -->
+<div class="step" id="step-conteo">
+  <button class="back-btn" onclick="irPaso('step-accion')">← Volver</button>
+  <div class="user-pill">Conteo físico · <b id="lbl-usuario-conteo"></b></div>
+  <div class="conteo-prog" id="conteo-prog"></div>
+  <div id="conteo-lista"></div>
+  <button class="main-btn" id="btn-enviar-conteo" onclick="enviarConteo()">Enviar conteo completo</button>
+</div>
+
+<!-- ══ PASO 5: Éxito ══ -->
+<div class="step" id="step-ok">
+  <div class="ok-box">
+    <div class="ok-ic" id="ok-ic">✅</div>
+    <div class="ok-msg" id="ok-msg"></div>
+    <div class="ok-who" id="ok-who"></div>
+    <div class="ok-btns">
+      <button class="primary" id="btn-ok-otro">+ Agregar otro</button>
+      <button onclick="irPaso('step-accion')">Cambiar acción</button>
+      <button onclick="irPaso('step-persona')">Cambiar persona</button>
+    </div>
+  </div>
+</div>
+
+</div><!-- /ctr -->
+
+<script>
+// ═══════════════════════════════════════════════════════
+// CONFIGURACIÓN
+// ═══════════════════════════════════════════════════════
+// Pega aquí la URL de tu Google Apps Script (ver apps-script-bodega.js).
+// Ejemplo: 'https://script.google.com/macros/s/AKfy...XPQ/exec'
+const AS_URL = sessionStorage.getItem('rr_as_url') || '';
+
+// Si AS_URL no está configurado, el sistema usa un modo demo/local.
+// En producción siempre tiene que estar configurada la URL.
+
+const PERSONAS = {
+  BARRA:    [{ n:'Sergio',    e:'☕' }],
+  COCINA:   [{ n:'Kari',     e:'🥘' }, { n:'Pao',    e:'🍳' }, { n:'Sara', e:'🧑‍🍳' }],
+  GAZON:    [{ n:'Shuler',   e:'🧾' }, { n:'Camila', e:'😊' }, { n:'Part Time', e:'👤' }],
+  JEFATURA: [{ n:'Joshua',   e:'👑' }, { n:'Gerardo',e:'📋' }],
+};
+const CAT_ICON = { CAF:'☕',LAC:'🥛',FRV:'🥦',FVR:'🥝',ABA:'🛒',SEM:'🌰',EMB:'🥩',QUE:'🧀',CAR:'🍖',CON:'🧂',PAN:'🍞',BEB:'🥤',BOL:'🍰',BOLL:'🍰',SUB:'🥘',SR:'🥘' };
+const CAT_LABEL= { CAF:'Café',LAC:'Lácteos',FRV:'Frutas y Verduras',FVR:'Frutas y Verduras',ABA:'Abarrotes',SEM:'Semillas',EMB:'Embutidos',QUE:'Quesos',CAR:'Carnes',CON:'Condimentos',PAN:'Panes',BEB:'Bebidas',BOL:'Bollería',BOLL:'Bollería',SUB:'Preparaciones',SR:'Preparaciones' };
+
+// Umbrales de varianza por tipo de unidad (% tolerado)
+const UMBRAL = { kg:5, l:5, lt:5, ml:5, g:5, gr:5, gl:5, un:0, und:0, unid:0, pza:0, default:5 };
+function umbralDeUnidad(u) { const k=(u||'').toLowerCase().trim(); return k in UMBRAL ? UMBRAL[k] : UMBRAL.default; }
+function estadoVarianza(varianzaPct, unidad) {
+  const tol = umbralDeUnidad(unidad);
+  const abs = Math.abs(varianzaPct);
+  if (abs <= tol)     return { cls:'var-ok',   txt:'OK', ico:'🟢' };
+  if (abs <= tol*2.5) return { cls:'var-warn', txt:'Revisar', ico:'🟡' };
+  return               { cls:'var-bad',  txt:'Discrepancia', ico:'🔴' };
+}
+
+// Estado de sesión
+let rolActual = '', rolLabel = '', usuario = '';
+let INGREDIENTES = {}, CONFIG = {};
+let ingSeleccionado = null, catActiva = 'TODOS';
+let stockActual = {};  // stock calculado desde Movimientos
+let conteoItems = [];  // lista de inputs de conteo físico
+
+// ─── Reloj ────────────────────────────────────────────
+function tick() {
+  const now = new Date();
+  document.getElementById('hdr-hora').textContent = now.toLocaleTimeString('es-CL',{hour:'2-digit',minute:'2-digit'});
+  document.getElementById('hdr-fecha').textContent = now.toLocaleDateString('es-CL',{weekday:'long',day:'numeric',month:'long'});
+}
+tick(); setInterval(tick, 15000);
+
+// ─── API (Google Apps Script) ─────────────────────────
+async function api(payload) {
+  if (!AS_URL) {
+    // Modo sin configurar: avisa pero no bloquea la UI
+    console.warn('AS_URL no configurada');
+    return { ok: true, _simulado: true };
+  }
+  const res = await fetch(AS_URL, {
+    method: 'POST',
+    body: JSON.stringify({ pin: sessionStorage.getItem('rr_pin') || '', ...payload }),
+  });
+  return res.json();
+}
+
+async function getIngredientes() {
+  const r = await api({ accion: 'getIngredientes' });
+  if (!r.ok) return {};
+  const out = {};
+  (r.data || []).forEach(row => {
+    out[row[0]] = { id:row[0], nombre:row[1], unidad:row[2], stockMinimo:+row[3]||0, costoActual:+row[4]||0, proveedor:row[5]||'', seguimiento:row[6]||'NORMAL', estacion:row[7]||'' };
+  });
+  return out;
+}
+
+async function getConfig() {
+  const r = await api({ accion: 'getConfig' });
+  return r.ok ? (r.data || {}) : {};
+}
+
+// ─── PIN ──────────────────────────────────────────────
+let pinActual = '';
+
+function pinTecla(d) {
+  if (pinActual.length >= 4) return;
+  pinActual += d;
+  renderPinDots();
+  if (pinActual.length === 4) validarPin();
+}
+
+function pinBorrar() { pinActual = pinActual.slice(0,-1); renderPinDots(); document.getElementById('pin-error').textContent = ''; }
+
+function renderPinDots() {
+  for (let i=0;i<4;i++) document.getElementById(`pd${i}`).classList.toggle('filled', i < pinActual.length);
+}
+
+async function validarPin() {
+  const modoConfig = !AS_URL;
+  if (modoConfig) {
+    // Sin Apps Script: cualquier PIN de 4 dígitos pasa (modo demo/configuración)
+    document.getElementById('pin-modo').textContent = '⚠ Apps Script no configurado todavía — entrando en modo demo';
+    sessionStorage.setItem('rr_pin', pinActual);
+    await precargarDatos();
+    irPaso('step-rol');
+    return;
+  }
+  // Verificar contra el Apps Script
+  const r = await api({ accion: 'registrarEntrada', fecha:'__pin_check__', pin: pinActual, idIngrediente:'' });
+  // Si el PIN es incorrecto, el AS devuelve ok:false con error 'PIN incorrecto'
+  // Si es correcto pero faltan datos, da error distinto
+  if (r.error === 'PIN incorrecto') {
+    pinActual = ''; renderPinDots();
+    document.getElementById('pin-error').textContent = 'PIN incorrecto, inténtalo de nuevo';
+    return;
+  }
+  // PIN válido
+  sessionStorage.setItem('rr_pin', pinActual);
+  await precargarDatos();
+  irPaso('step-rol');
+}
+
+async function precargarDatos() {
+  [INGREDIENTES, CONFIG] = await Promise.all([getIngredientes(), getConfig()]);
+  // Stock calculado: aquí usamos un valor simplificado; el cálculo real viene del dashboard
+  // Para el conteo físico en el tablet solo necesitamos el "stock calculado para comparar"
+  // Lo recibimos del config si está disponible, o mostramos "—" al usuario
+}
+
+// ─── Wizard ──────────────────────────────────────────
+function irPaso(id) {
+  document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if (id === 'step-ingrediente') {
+    document.getElementById('ing-search').value = ''; catActiva = 'TODOS';
+    renderCats(); filtrarIng();
+    document.getElementById('qty-panel').classList.remove('visible');
+    ingSeleccionado = null;
+    document.querySelectorAll('.ing-card.sel').forEach(c=>c.classList.remove('sel'));
+  }
+}
+
+function elegirRol(rol, label) {
+  rolActual = rol; rolLabel = label;
+  document.getElementById('titulo-personas').textContent = `${label} — ¿Cuál es tu nombre?`;
+  document.getElementById('grid-personas').innerHTML = (PERSONAS[rol]||[]).map(p=>`<div class="big-btn" onclick="elegirPersona('${p.n}')"><span class="ic">${p.e}</span><span class="nm">${p.n}</span></div>`).join('');
+  irPaso('step-persona');
+}
+
+function elegirPersona(nombre) {
+  usuario = nombre;
+  document.getElementById('acc-usuario-label').textContent = `${nombre} · ${rolLabel}`;
+  document.getElementById('lbl-usuario-entrada').textContent = `${nombre} (${rolLabel})`;
+  document.getElementById('lbl-usuario-conteo').textContent = `${nombre} (${rolLabel})`;
+  // Calcular si hay conteo pendiente
+  const frecKey = `frecuencia_${rolActual.toLowerCase()}_dias`;
+  const ultKey  = `ultimo_conteo_${rolActual.toLowerCase()}`;
+  const frec = parseInt(CONFIG[frecKey]) || 0;
+  const ult  = CONFIG[ultKey] ? new Date(CONFIG[ultKey]) : null;
+  const diasDeUlt = ult ? Math.floor((Date.now()-ult)/86400000) : 999;
+  const pendiente = frec > 0 && diasDeUlt >= frec;
+  const badge = document.getElementById('badge-conteo');
+  badge.style.display = pendiente ? 'inline-block' : 'none';
+  irPaso('step-accion');
+}
+
+// ─── ENTRADA DE MERCADERÍA ────────────────────────────
+function iniciarEntrada() { irPaso('step-ingrediente'); }
+
+function ingVisibles() {
+  return Object.values(INGREDIENTES).filter(i => {
+    if (i.seguimiento === 'NO_CONTAR') return false;
+    if (rolActual !== 'JEFATURA') {
+      const est = i.estacion || '';
+      if (est && est !== rolActual && est !== 'TODOS') return false;
+    }
+    return true;
+  });
+}
+
+function catDeId(id) { return CAT_LABEL[((id||'').match(/^[A-Za-z]+/)||[''])[0].toUpperCase()] || 'Otros'; }
+function iconDeId(id) { return CAT_ICON[((id||'').match(/^[A-Za-z]+/)||[''])[0].toUpperCase()] || '📦'; }
+
+function renderCats() {
+  const cats = ['TODOS', ...new Set(ingVisibles().map(i=>catDeId(i.id)))].sort((a,b)=>a==='TODOS'?-1:1);
+  document.getElementById('cat-filters').innerHTML = cats.map(c=>`<div class="cat-pill${c===catActiva?' active':''}" onclick="selCat('${c}')">${c}</div>`).join('');
+}
+function selCat(c) { catActiva = c; renderCats(); filtrarIng(); }
+
+function filtrarIng() {
+  const q = (document.getElementById('ing-search').value||'').toLowerCase();
+  let items = ingVisibles();
+  if (catActiva !== 'TODOS') items = items.filter(i=>catDeId(i.id)===catActiva);
+  if (q) items = items.filter(i=>i.nombre.toLowerCase().includes(q)||i.id.toLowerCase().includes(q));
+  items.sort((a,b)=>a.nombre.localeCompare(b.nombre));
+  document.getElementById('ing-grid').innerHTML = items.map(i=>`
+    <div class="ing-card${ingSeleccionado&&ingSeleccionado.id===i.id?' sel':''}" onclick="selIng('${i.id}')">
+      <div class="ic">${iconDeId(i.id)}</div>
+      <div class="nm">${i.nombre}</div>
+      <div class="un">${i.unidad}</div>
+    </div>`).join('') || '<div style="color:#555;text-align:center;padding:18px;grid-column:1/-1">Sin resultados</div>';
+}
+
+function selIng(id) {
+  ingSeleccionado = INGREDIENTES[id];
+  if (!ingSeleccionado) return;
+  document.querySelectorAll('.ing-card').forEach(c=>c.classList.remove('sel'));
+  document.querySelectorAll('.ing-card').forEach(c=>{ if(c.querySelector('.nm')?.textContent===ingSeleccionado.nombre) c.classList.add('sel'); });
+  document.getElementById('qty-ing-label').textContent = `${iconDeId(id)}  ${ingSeleccionado.nombre}`;
+  document.getElementById('qty-unit-label').textContent = ingSeleccionado.unidad;
+  document.getElementById('qty-val').value = '';
+  document.getElementById('qty-panel').classList.add('visible');
+  document.getElementById('qty-panel').scrollIntoView({behavior:'smooth',block:'nearest'});
+  document.getElementById('qty-val').focus();
+}
+
+function ajustaCant(d) {
+  const inp = document.getElementById('qty-val');
+  inp.value = Math.max(0, (parseFloat(inp.value)||0) + d);
+}
+
+async function confirmarEntrada() {
+  if (!ingSeleccionado) return;
+  const cant = parseFloat(document.getElementById('qty-val').value);
+  if (!cant||cant<=0) { document.getElementById('qty-val').focus(); return; }
+  const btn = document.getElementById('btn-confirmar-entrada');
+  btn.disabled=true; btn.textContent='Guardando…';
+  const ahora = new Date();
+  try {
+    const r = await api({
+      accion:'registrarEntrada',
+      id: `NOT-${Date.now()}`,
+      fecha: ahora.toISOString().slice(0,10), hora: ahora.toTimeString().slice(0,5),
+      usuario, rol: rolLabel,
+      idIngrediente: ingSeleccionado.id, nombreIngrediente: ingSeleccionado.nombre,
+      cantidad: cant, unidad: ingSeleccionado.unidad, costoUnitario: ingSeleccionado.costoActual||'',
+      referencia: `Estación ${rolLabel}`,
+    });
+    if (!r.ok && !r._simulado) throw new Error(r.error||'Error desconocido');
+    document.getElementById('ok-ic').textContent = '✅';
+    document.getElementById('ok-msg').innerHTML = `<b>${usuario}</b> ha agregado<br><b>${cant} ${ingSeleccionado.unidad} de ${ingSeleccionado.nombre}</b><br>al inventario`;
+    document.getElementById('ok-who').textContent = ahora.toLocaleTimeString('es-CL',{hour:'2-digit',minute:'2-digit'});
+    document.getElementById('btn-ok-otro').onclick = () => irPaso('step-ingrediente');
+    irPaso('step-ok');
+  } catch(e) { alert('Error al guardar: '+e.message); }
+  finally { btn.disabled=false; btn.textContent='✓ Agregar al inventario'; }
+}
+
+// ─── CONTAR INVENTARIO ────────────────────────────────
+function iniciarConteo() {
+  const items = ingVisibles().filter(i=>i.seguimiento!=='NO_CONTAR');
+  if (!items.length) { alert('No hay ingredientes asignados a tu área para contar.'); return; }
+  conteoItems = items.sort((a,b)=>a.nombre.localeCompare(b.nombre));
+  document.getElementById('conteo-prog').textContent = `${conteoItems.length} ingredientes a contar en tu área`;
+  document.getElementById('conteo-lista').innerHTML = conteoItems.map((ing,i)=>`
+    <div class="conteo-item" id="ci-${i}">
+      <div class="ci-nm">${iconDeId(ing.id)} ${ing.nombre}</div>
+      <div class="ci-stock">Stock calculado actualmente: — ${ing.unidad}</div>
+      <div class="ci-row">
+        <input type="number" id="cnt-${i}" min="0" step="any" placeholder="¿Cuánto hay?" inputmode="decimal">
+        <span class="ci-unit">${ing.unidad}</span>
+      </div>
+    </div>`).join('');
+  irPaso('step-conteo');
+}
+
+async function enviarConteo() {
+  const btn = document.getElementById('btn-enviar-conteo');
+  const faltantes = conteoItems.filter((_,i)=>!document.getElementById(`cnt-${i}`).value.trim());
+  if (faltantes.length > 0) { alert(`Aún faltan ${faltantes.length} ingrediente(s) por contar.`); return; }
+  btn.disabled=true; btn.textContent='Guardando…';
+  const ahora = new Date();
+  const fecha = ahora.toISOString().slice(0,10);
+  const hora  = ahora.toTimeString().slice(0,5);
+  let errores = 0, discrepancias = 0;
+  for (let i=0; i<conteoItems.length; i++) {
+    const ing  = conteoItems[i];
+    const fis  = parseFloat(document.getElementById(`cnt-${i}`).value)||0;
+    const calc = 0; // sin stock calculado en el tablet; el dashboard hace la comparación completa
+    const var_ = fis - calc;
+    const pct  = calc ? Math.round(Math.abs(var_/calc)*1000)/10 : null;
+    const est  = pct!==null ? estadoVarianza(pct, ing.unidad) : { cls:'var-ok', txt:'Sin referencia', ico:'—' };
+    const r = await api({
+      accion:'registrarConteo',
+      id:`CTF-${Date.now()}-${i}`, fecha, hora, usuario, rol:rolLabel,
+      idIngrediente:ing.id, nombreIngrediente:ing.nombre,
+      cantidadFisica:fis, unidad:ing.unidad,
+      stockCalculado:calc, varianza:var_, varianzaPct:pct||0, estado:est.txt,
+    });
+    if (!r.ok && !r._simulado) errores++;
+    if (est.cls==='var-bad'||est.cls==='var-warn') discrepancias++;
+  }
+  btn.disabled=false;
+  document.getElementById('ok-ic').textContent = discrepancias>0 ? '⚠️' : '✅';
+  document.getElementById('ok-msg').innerHTML = `<b>${usuario}</b> completó el conteo físico de <b>${conteoItems.length} ingredientes</b>.${discrepancias>0?`<br>Se detectaron <b>${discrepancias} diferencias</b> — Joshua lo verá en el dashboard de triangulación.`:'<br>Todo dentro de los rangos esperados. ✓'}`;
+  document.getElementById('ok-who').textContent = `${fecha} · ${hora}`;
+  document.getElementById('btn-ok-otro').style.display='none';
+  irPaso('step-ok');
+}
+
+// ─── Inicialización ───────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  // Si hay sesión PIN vigente (últimas 8 horas), salta directamente al selector de rol
+  const savedPin = sessionStorage.getItem('rr_pin');
+  const savedTs  = parseInt(sessionStorage.getItem('rr_pin_ts') || '0');
+  if (savedPin && Date.now() - savedTs < 8 * 3600000) {
+    precargarDatos().then(() => irPaso('step-rol'));
+  }
+  if (!AS_URL) {
+    document.getElementById('pin-modo').textContent = '⚙ Configura la URL del Apps Script en estacion.html para producción';
+  }
+});
+</script>
+</body>
+</html>

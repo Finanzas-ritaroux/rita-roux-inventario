@@ -18,8 +18,12 @@
     <a href="productos-recetas.html" class="cur">📋 Productos y Recetas</a>
     <a href="stock.html">📦 Stock</a>
     <a href="entradas.html">🚚 Entradas</a>
+    <a href="lista-compras.html">🛒 Compras</a>
     <a href="mermas.html">🗑 Mermas</a>
     <a href="costos.html">💰 Costos</a>
+    <a href="estacion.html">📦 Bodega</a>
+    <a href="triangulacion.html">🔺 Triangulación</a>
+    <a href="edicion-datos.html">✏️ Edición de Datos</a>
   </div>
 </header>
 
@@ -45,6 +49,18 @@
       </table>
     </div>
   </div>
+
+  <details class="panel">
+    <summary style="cursor:pointer;font-weight:700;font-size:14px">🔄 Comparar con catálogo Toteat</summary>
+    <div class="info-box" style="margin-top:14px">Toteat sabe el <b>nombre</b> y el <b>precio de venta</b> de cada producto — pero no su receta (ingredientes/cantidades), eso siempre se define aquí a mano. Este botón solo detecta productos que Toteat ya tiene vendibles pero que todavía no tienen receta creada en este sistema.</div>
+    <div class="row" style="margin:10px 0"><button class="btn-outline btn" onclick="compararConToteat()">Comparar ahora</button> <span id="toteat-status" style="font-size:12px;color:var(--mid)"></span></div>
+    <div class="tbl-wrap">
+      <table class="tbl">
+        <thead><tr><th>Id</th><th>Producto (en Toteat)</th><th>Categoría</th><th class="num">Precio Venta</th><th></th></tr></thead>
+        <tbody id="tbody-faltantes"><tr><td colspan="5" class="empty">Sin comparar todavía.</td></tr></tbody>
+      </table>
+    </div>
+  </details>
 </div>
 
 <!-- MODAL PRODUCTO -->
@@ -131,16 +147,38 @@ function renderTabla() {
     </tr>`).join('') || '<tr><td colspan="5" class="empty">Sin productos. Crea el primero con "+ Nuevo Producto".</td></tr>';
 }
 
-function abrirNuevoProducto() {
+function abrirNuevoProducto(idPrefill, nombrePrefill) {
   pidEditando = null;
   document.getElementById('modal-titulo').textContent = 'Nuevo Producto';
-  document.getElementById('f-pid').value = '';
+  document.getElementById('f-pid').value = idPrefill || '';
   document.getElementById('f-pid').disabled = false;
-  document.getElementById('f-pname').value = '';
+  document.getElementById('f-pname').value = nombrePrefill || '';
   document.getElementById('btn-eliminar').style.display = 'none';
   document.getElementById('filas-ing').innerHTML = '';
   agregarFilaIngrediente();
   document.getElementById('modal').classList.add('open');
+}
+
+// ─── Comparar con catálogo Toteat (solo detecta, nunca crea solo) ────────────
+async function compararConToteat() {
+  const status = document.getElementById('toteat-status');
+  status.textContent = 'Consultando Toteat…';
+  try {
+    const res = await fetch(`${TOTEAT_PROXY_BASE}/api/products`);
+    const json = await res.json();
+    if (!json.ok) throw new Error(json.msg || 'Error de Toteat');
+
+    const faltantes = (json.data || []).filter(p => !p.isModifier && !RECETAS[String(p.id)]);
+    document.getElementById('tbody-faltantes').innerHTML = faltantes.map(p => `
+      <tr>
+        <td>${p.id}</td><td>${p.name}</td><td>${p.category || '—'}</td>
+        <td class="num">$ ${(p.price || 0).toLocaleString('es-CL')}</td>
+        <td><button class="btn btn-sm" onclick="abrirNuevoProducto('${p.id}', '${(p.name || '').replace(/'/g, "\\'")}')">+ Crear receta</button></td>
+      </tr>`).join('') || '<tr><td colspan="5" class="empty">✓ Todos los productos vendibles de Toteat ya tienen receta aquí.</td></tr>';
+    status.textContent = `✓ ${faltantes.length} producto(s) de Toteat sin receta todavía (de ${json.data.length} en su catálogo).`;
+  } catch (e) {
+    status.textContent = '⚠ Error: ' + e.message;
+  }
 }
 
 function abrirProducto(pid) {

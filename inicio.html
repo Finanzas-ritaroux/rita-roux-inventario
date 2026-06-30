@@ -26,8 +26,11 @@
     <a href="productos-recetas.html">📋 Productos y Recetas</a>
     <a href="stock.html">📦 Stock</a>
     <a href="entradas.html">🚚 Entradas</a>
+    <a href="lista-compras.html">🛒 Compras</a>
     <a href="mermas.html">🗑 Mermas</a>
     <a href="costos.html">💰 Costos</a>
+    <a href="triangulacion.html">🔺 Triangulación</a>
+    <a href="edicion-datos.html">✏️ Edición de Datos</a>
   </div>
 </header>
 
@@ -40,12 +43,49 @@
   <div class="cards">
     <div class="card good"><div class="label">Valor total inventario</div><div class="value" id="kpi-valor">—</div></div>
     <div class="card bad"><div class="label">Ingredientes bajo mínimo</div><div class="value" id="kpi-bajo">—</div></div>
+    <div class="card bad"><div class="label">Discrepancias (triangulación)</div><div class="value" id="kpi-disc">—</div><div class="sub"><a href="triangulacion.html" style="color:var(--red)">Ver detalle →</a></div></div>
     <div class="card warn"><div class="label">Merma este mes</div><div class="value" id="kpi-merma">—</div></div>
     <div class="card accent"><div class="label">Entradas pendientes de factura</div><div class="value" id="kpi-pend">—</div></div>
   </div>
 
+  <!-- Panel de alertas de conteos pendientes (visible si alguna estación no ha contado a tiempo) -->
+  <div class="panel" id="panel-conteos-pendientes" style="display:none">
+    <div class="panel-title">
+      <span><span class="dot"></span>📋 Conteos pendientes</span>
+      <a href="triangulacion.html" class="btn btn-sm" style="text-decoration:none;display:inline-block">Ver triangulación →</a>
+    </div>
+    <div id="lista-conteos-pendientes"></div>
+  </div>
+
+  <div class="panel" id="panel-alarma-proveedores" style="display:none">
+    <div class="panel-title"><span><span class="dot"></span>🔔 Proveedores que necesitan pedido</span></div>
+    <div id="lista-alarma-proveedores"></div>
+  </div>
+
   <div class="panel">
-    <div class="panel-title"><span><span class="dot"></span>⚠ Alertas de stock bajo</span></div>
+    <div class="panel-title"><span><span class="dot"></span>🗑 Registrar merma rápida</span></div>
+    <div id="picker-merma"></div>
+    <div class="row" style="margin-top:14px;align-items:flex-end">
+      <div class="field" style="width:120px"><label>Cantidad</label><input type="number" id="merma-cant" step="any"></div>
+      <div class="field" style="width:200px"><label>Motivo</label>
+        <select id="merma-motivo">
+          <option>Rotura</option>
+          <option>Caducidad / vencimiento</option>
+          <option>Error de preparación</option>
+          <option>Robo o pérdida</option>
+          <option>Otro</option>
+        </select>
+      </div>
+      <button class="btn" onclick="registrarMermaRapida()">Registrar Merma</button>
+      <span id="merma-status" style="font-size:12px;color:var(--mid)"></span>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">
+      <span><span class="dot"></span>⚠ Alertas de stock bajo</span>
+      <a href="lista-compras.html" class="btn btn-sm" style="text-decoration:none;display:inline-block">🛒 Ver lista de compras sugerida →</a>
+    </div>
     <div class="tbl-wrap">
       <table class="tbl">
         <thead><tr><th>Ingrediente</th><th class="num">Stock Actual</th><th>Unidad</th><th class="num">Mínimo</th><th>Estado</th></tr></thead>
@@ -54,8 +94,21 @@
     </div>
   </div>
 
+  <!-- Panel de actividad reciente de la bodega (notificaciones de estacion.html) -->
+  <div class="panel" id="panel-bodega" style="display:none">
+    <div class="panel-title">
+      <span><span class="dot"></span>📦 Actividad reciente de bodega</span>
+      <a href="estacion.html" class="btn btn-sm" style="text-decoration:none;display:inline-block">+ Registrar entrada →</a>
+    </div>
+    <div id="notif-lista"></div>
+  </div>
+
   <div class="panel-title" style="border:none;margin:6px 0 14px"><span><span class="dot"></span>Accesos rápidos</span></div>
   <div class="quick-grid" style="margin-bottom:24px">
+    <a class="quick-card" href="estacion.html" style="border-left:4px solid var(--green)">
+      <div class="ic">📦</div><div class="ti">Registrar en Bodega</div>
+      <div class="de">Barra, Cocina, Meseros y Jefatura ingresan stock desde tablet o celular.</div>
+    </a>
     <a class="quick-card" href="productos-recetas.html">
       <div class="ic">📋</div><div class="ti">Productos y Recetas</div>
       <div class="de">Crea, edita y elimina productos con su lista de ingredientes por porción.</div>
@@ -72,9 +125,17 @@
       <div class="ic">🗑</div><div class="ti">Mermas</div>
       <div class="de">Registra pérdidas, roturas o caducidad con motivo — ajusta el stock al instante.</div>
     </a>
+    <a class="quick-card" href="lista-compras.html">
+      <div class="ic">🛒</div><div class="ti">Lista de Compras</div>
+      <div class="de">Productos urgentes y sugerencias por proveedor, agrupadas para armar el pedido.</div>
+    </a>
     <a class="quick-card" href="costos.html">
       <div class="ic">💰</div><div class="ti">Costos y Márgenes</div>
       <div class="de">Costo por producto, margen vs. precio de Toteat y evolución de costo de insumos.</div>
+    </a>
+    <a class="quick-card" href="triangulacion.html" style="border-left:4px solid var(--red)">
+      <div class="ic">🔺</div><div class="ti">Triangulación</div>
+      <div class="de">Compara entradas del equipo, stock teórico de Toteat y conteo físico de Joshua.</div>
     </a>
   </div>
 
@@ -92,27 +153,117 @@
 <footer class="app-footer">Inventario Rita Roux Café · datos en Google Sheets · Fase 2 (próxima): conteo físico, lista de compras, proveedores · Fase 3: eventos, lectura IA de boletas</footer>
 
 <script src="gsheets.js"></script>
+<script src="picker.js"></script>
+<script src="compras.js"></script>
 <script>
 const TIPO_LABEL = { ENTRADA: '🚚 Entrada', VENTA: '🧾 Venta', MERMA: '🗑 Merma', AJUSTE_CONTEO: '⚖ Ajuste', SALIDA_EVENTO: '🎉 Evento' };
 const TIPO_PILL  = { ENTRADA: 'ok', VENTA: 'mid', MERMA: 'bad', AJUSTE_CONTEO: 'warn', SALIDA_EVENTO: 'mid' };
+
+let INGREDIENTES = {};
+let pickerMerma = null;
+let ingredienteMermaSeleccionado = null;
 
 window.addEventListener('DOMContentLoaded', () => gsInit(onAuth));
 
 async function onAuth() {
   await invInitSheet();
+  cargarNotificacionesBodega();   // no bloquea
+  cargarAlertas();                // triangulación + conteos pendientes, en paralelo
   const recetas = await invCargarRecetas();
   const [ingredientes, movimientos, pendientes] = await Promise.all([
     invSembrarIngredientesSiVacio(recetas),
     invCargarMovimientos(),
     invCargarEntradasPendientes(),
   ]);
+  INGREDIENTES = ingredientes;
+  const stock = invCalcularStock(movimientos);
 
+  // Deja registrado en el Sheet cualquier quiebre de stock nuevo (o cierra los que
+  // ya se repusieron) — corre solo, no requiere que nadie lo registre a mano.
+  await invSincronizarQuiebresStock(ingredientes, stock);
+
+  const proveedores = await invSembrarProveedoresDesdeIngredientes(ingredientes);
+  renderAlarmaProveedores(ingredientes, stock, proveedores);
+
+  pickerMerma = crearPickerIngredientes(document.getElementById('picker-merma'), INGREDIENTES, ing => ingredienteMermaSeleccionado = ing);
   renderKPIs(ingredientes, movimientos, pendientes);
   renderAlertas(ingredientes, movimientos);
   renderMovimientos(movimientos);
 }
 
-function estado(stock, minimo) {
+async function cargarAlertas() {
+  try {
+    const [recetas, movs, conteos, cfg] = await Promise.all([
+      invCargarRecetas(), invCargarMovimientos(), invCargarConteoFisico(), invCargarConfig(),
+    ]);
+    const ings = await invSembrarIngredientesSiVacio(recetas);
+    const tri  = invTriangular(ings, movs, conteos);
+
+    // KPI discrepancias
+    const disc = tri.filter(r => r.estado?.estado === 'Discrepancia').length;
+    document.getElementById('kpi-disc').textContent = disc || '—';
+
+    // Panel de conteos pendientes
+    const roles = ['BARRA','COCINA','GAZON','JEFATURA'];
+    const pendientes = [];
+    const hoy = new Date();
+    roles.forEach(rol => {
+      const frec = parseInt(cfg[`frecuencia_${rol.toLowerCase()}_dias`]) || 0;
+      if (!frec) return;
+      const ult  = cfg[`ultimo_conteo_${rol.toLowerCase()}`] ? new Date(cfg[`ultimo_conteo_${rol.toLowerCase()}`]) : null;
+      const dias = ult ? Math.floor((hoy - ult) / 86400000) : 999;
+      if (dias >= frec) {
+        const labels = { BARRA:'Barra (Sergio)', COCINA:'Cocina (Kari, Pao, Sara)', GAZON:'Meseros (Shuler, Camila…)', JEFATURA:'Jefatura' };
+        pendientes.push({ rol, label:labels[rol], dias, frec, ult });
+      }
+    });
+    if (pendientes.length) {
+      document.getElementById('panel-conteos-pendientes').style.display = 'block';
+      document.getElementById('lista-conteos-pendientes').innerHTML = pendientes.map(p=>`
+        <div style="padding:9px 0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+          <span style="font-size:13px"><b>${p.label}</b> — frecuencia: cada ${p.frec} día(s), último conteo: ${p.ult?p.ult.toLocaleDateString('es-CL'):'nunca'} (hace ${p.dias>300?'más de mucho tiempo':p.dias+' días'})</span>
+          <a href="estacion.html" class="btn btn-sm" style="text-decoration:none;display:inline-block;background:var(--yellow);color:#fff">Contar ahora</a>
+        </div>`).join('');
+    }
+  } catch(e) { /* silencioso */ }
+}
+
+async function cargarNotificacionesBodega() {
+  try {
+    const notifs = await invCargarNotificaciones(15);
+    if (!notifs.length) return;
+    document.getElementById('panel-bodega').style.display = 'block';
+    document.getElementById('notif-lista').innerHTML = notifs.map(n => {
+      const ahora = new Date();
+      const ts = new Date(`${n.fecha}T${n.hora || '00:00'}`);
+      const mins = Math.round((ahora - ts) / 60000);
+      const cuando = mins < 1 ? 'ahora mismo' : mins < 60 ? `hace ${mins} min` : mins < 1440 ? `hace ${Math.round(mins/60)} h` : `${n.fecha}`;
+      return `<div style="padding:10px 0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+        <span style="font-size:13px">${n.mensaje || `${n.usuario} agregó ${n.cantidad} ${n.unidad} de ${n.nombreIngrediente}`}</span>
+        <span style="font-size:11px;color:var(--light);white-space:nowrap">${cuando}</span>
+      </div>`;
+    }).join('');
+  } catch (e) { /* silencioso si falla */ }
+}
+
+function renderAlarmaProveedores(ingredientes, stock, proveedores) {
+  const proveedoresCalc = calcularComprasSugeridas(ingredientes, stock, proveedores).filter(p => p.alarma);
+  const panel = document.getElementById('panel-alarma-proveedores');
+  panel.style.display = proveedoresCalc.length ? 'block' : 'none';
+  document.getElementById('lista-alarma-proveedores').innerHTML = proveedoresCalc.map(p => `
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--border)">
+      <div>
+        <b>${p.nombre}</b> <span class="pill bad" style="margin-left:6px">${p.puntaje} / ${p.umbral} pts</span>
+        <div style="font-size:12px;color:var(--light);margin-top:3px">${p.items.length} producto(s) sugerido(s) · entrega en ${p.tiempoEntregaDias || 0} día(s)</div>
+      </div>
+      <a href="lista-compras.html#prov-${p.slug}" class="btn btn-sm" style="text-decoration:none;display:inline-block">Ver pedido →</a>
+    </div>`).join('');
+}
+
+// "No contar" (sal, pimienta, especias, etc.) nunca genera alerta — Joshua decidió
+// explícitamente que esos ingredientes no se siguen, así que no deben hacer ruido aquí.
+function estado(stock, minimo, seguimiento) {
+  if (seguimiento === 'NO_CONTAR') return { cls: 'mid', txt: 'No se sigue' };
   if (!minimo) return { cls: 'mid', txt: 'Sin mínimo' };
   if (stock <= 0) return { cls: 'bad', txt: 'Agotado' };
   if (stock < minimo) return { cls: 'bad', txt: 'Bajo mínimo' };
@@ -120,10 +271,31 @@ function estado(stock, minimo) {
   return { cls: 'ok', txt: 'OK' };
 }
 
+async function registrarMermaRapida() {
+  const status = document.getElementById('merma-status');
+  if (!ingredienteMermaSeleccionado) { status.textContent = '⚠ Elige un producto de la lista.'; return; }
+  const cantidad = parseFloat(document.getElementById('merma-cant').value);
+  if (!cantidad || cantidad <= 0) { status.textContent = '⚠ Ingresa una cantidad mayor a 0.'; return; }
+
+  const ing = ingredienteMermaSeleccionado;
+  await invAgregarMovimientos([{
+    fecha: new Date().toISOString(), tipo: MOV.MERMA, idIngrediente: ing.id, nombreIngrediente: ing.nombre,
+    cantidad: -Math.abs(cantidad), unidad: ing.unidad, costoUnitario: ing.costoActual || '',
+    referencia: document.getElementById('merma-motivo').value, usuario: '', comentario: '',
+  }]);
+
+  status.textContent = `✓ Merma de ${cantidad} ${ing.unidad} de "${ing.nombre}" registrada.`;
+  document.getElementById('merma-cant').value = '';
+  pickerMerma.limpiarSeleccion();
+  ingredienteMermaSeleccionado = null;
+  await onAuth(); // refresca KPIs/alertas/movimientos con la merma ya aplicada
+}
+
 function renderKPIs(ingredientes, movimientos, pendientes) {
   const stock = invCalcularStock(movimientos);
   const valor = Object.values(ingredientes).reduce((s, i) => s + (stock[i.id] || 0) * (i.costoActual || 0), 0);
-  const bajo = Object.values(ingredientes).filter(i => estado(stock[i.id] || 0, i.stockMinimo).cls === 'bad').length;
+  const aSeguir = Object.values(ingredientes).filter(i => i.seguimiento !== 'NO_CONTAR');
+  const bajo = aSeguir.filter(i => estado(stock[i.id] || 0, i.stockMinimo, i.seguimiento).cls === 'bad').length;
 
   const mesActual = new Date().toISOString().slice(0, 7);
   const mermaMes = movimientos.filter(m => m.tipo === 'MERMA' && (m.fecha || '').slice(0, 7) === mesActual)
@@ -138,7 +310,8 @@ function renderKPIs(ingredientes, movimientos, pendientes) {
 function renderAlertas(ingredientes, movimientos) {
   const stock = invCalcularStock(movimientos);
   const filas = Object.values(ingredientes)
-    .map(i => ({ ...i, stock: stock[i.id] || 0, est: estado(stock[i.id] || 0, i.stockMinimo) }))
+    .filter(i => i.seguimiento !== 'NO_CONTAR')
+    .map(i => ({ ...i, stock: stock[i.id] || 0, est: estado(stock[i.id] || 0, i.stockMinimo, i.seguimiento) }))
     .filter(i => i.est.cls === 'bad' || i.est.cls === 'warn')
     .sort((a, b) => a.stock - b.stock);
 
