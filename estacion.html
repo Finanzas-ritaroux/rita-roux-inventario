@@ -11,72 +11,40 @@ html, body { background: #141414; color: #fff; font-family: 'Segoe UI', system-u
 .step { display: none; }
 .step.active { display: block; }
 .titulo { font-size: 12px; color: #777; text-align: center; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 1px; }
-
-/* ── Personas ── */
 .grid-personas { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px,1fr)); gap: 10px; }
-.btn-persona {
-  background: #222; border: 2px solid #333; border-radius: 14px; color: #fff;
-  cursor: pointer; font-family: inherit; padding: 22px 10px; text-align: center;
-  touch-action: manipulation; width: 100%; transition: background .1s, border-color .1s;
-}
+.btn-persona { background: #222; border: 2px solid #333; border-radius: 14px; color: #fff; cursor: pointer; font-family: inherit; padding: 22px 10px; text-align: center; touch-action: manipulation; width: 100%; transition: background .1s, border-color .1s; }
 .btn-persona .p-nm  { font-size: 16px; font-weight: 700; display: block; color: #fff; }
 .btn-persona .p-rol { font-size: 11px; color: #888; display: block; margin-top: 5px; }
 .btn-persona:active { background: #2d4d30; border-color: #5e7e62; }
-
-/* ── Botón volver ── */
 .btn-volver { background: none; border: none; color: #777; font-size: 14px; cursor: pointer; padding: 0; margin-bottom: 16px; font-family: inherit; touch-action: manipulation; display: block; }
-
-/* ── Chip ── */
 .chip { display: inline-block; background: #222; border: 1px solid #333; border-radius: 20px; padding: 5px 14px; font-size: 12px; color: #888; margin-bottom: 14px; }
 .chip b { color: #7a9e7e; }
-
-/* ── Acciones ── */
 .accs { display: flex; flex-direction: column; gap: 10px; }
-.btn-acc {
-  display: flex; align-items: center; gap: 16px; background: #1e1e1e;
-  border: 2px solid #2a2a2a; border-radius: 13px; color: #fff;
-  cursor: pointer; font-family: inherit; padding: 18px 16px; text-align: left;
-  touch-action: manipulation; width: 100%; transition: background .1s, border-color .1s;
-}
-.btn-acc:active              { background: #2d4d30; border-color: #5e7e62; }
-.btn-acc.rojo:active         { background: #4a1c1c; border-color: #c05050; }
-.btn-acc.naranja:active      { background: #3a2200; border-color: #c8700a; }
-.btn-acc .a-num  { font-size: 26px; font-weight: 900; min-width: 32px; text-align: center; color: #5e9e62; }
-.btn-acc.rojo .a-num         { color: #e05252; }
-.btn-acc.naranja .a-num      { color: #e09040; }
+.btn-acc { display: flex; align-items: center; gap: 16px; background: #1e1e1e; border: 2px solid #2a2a2a; border-radius: 13px; color: #fff; cursor: pointer; font-family: inherit; padding: 18px 16px; text-align: left; touch-action: manipulation; width: 100%; transition: background .1s, border-color .1s; }
+.btn-acc:active { background: #2d4d30; border-color: #5e7e62; }
+.btn-acc.rojo:active { background: #4a1c1c; border-color: #c05050; }
+.btn-acc.naranja:active { background: #3a2200; border-color: #c8700a; }
+.btn-acc .a-num { font-size: 26px; font-weight: 900; min-width: 32px; text-align: center; color: #5e9e62; }
+.btn-acc.rojo .a-num { color: #e05252; }
+.btn-acc.naranja .a-num { color: #e09040; }
 .btn-acc .a-titulo { font-size: 15px; font-weight: 700; color: #fff; display: block; }
-.btn-acc .a-desc   { font-size: 11px; color: #777; display: block; margin-top: 3px; }
-
-/* ── Buscador ── */
+.btn-acc .a-desc { font-size: 11px; color: #777; display: block; margin-top: 3px; }
 .buscador { margin-bottom: 12px; }
 .buscador input { width: 100%; background: #1e1e1e; border: 2px solid #333; border-radius: 12px; color: #fff; font-size: 17px; padding: 13px 16px; font-family: inherit; }
 .buscador input:focus { outline: none; border-color: #5e7e62; }
 .buscador input::placeholder { color: #555; }
-
-/* ── Lista de proveedores ── */
 .lista-provs { display: flex; flex-direction: column; gap: 8px; }
-.btn-prov {
-  background: #1e1e1e; border: 2px solid #2a2a2a; border-radius: 13px; color: #fff;
-  cursor: pointer; font-family: inherit; padding: 16px 18px; text-align: left; width: 100%;
-  touch-action: manipulation; display: flex; justify-content: space-between; align-items: center;
-  transition: background .1s, border-color .1s;
-}
+.btn-prov { background: #1e1e1e; border: 2px solid #2a2a2a; border-radius: 13px; color: #fff; cursor: pointer; font-family: inherit; padding: 16px 18px; text-align: left; width: 100%; touch-action: manipulation; display: flex; justify-content: space-between; align-items: center; transition: background .1s, border-color .1s; }
 .btn-prov:active { background: #2d4d30; border-color: #5e7e62; }
-.btn-prov .pr-nm  { font-size: 16px; font-weight: 700; color: #fff; }
+.btn-prov .pr-nm { font-size: 16px; font-weight: 700; color: #fff; }
 .btn-prov .pr-sub { font-size: 11px; color: #777; display: block; margin-top: 3px; }
 .btn-prov .pr-cnt { font-size: 13px; color: #5e9e62; font-weight: 700; white-space: nowrap; }
 .vacio { color: #555; text-align: center; padding: 30px; font-size: 14px; }
-
-/* ── Tabla de productos (entrada masiva) ── */
 .prov-header { background: #1e1e1e; border-radius: 12px; padding: 14px 16px; margin-bottom: 10px; }
 .ph-nm { font-size: 17px; font-weight: 700; color: #fff; }
-.ph-cnt{ font-size: 12px; color: #777; margin-top: 3px; }
+.ph-cnt { font-size: 12px; color: #777; margin-top: 3px; }
 .accion-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
-.tab-acc {
-  background: #1e1e1e; border: 2px solid #333; border-radius: 10px; color: #888;
-  cursor: pointer; font-family: inherit; font-size: 14px; font-weight: 600;
-  padding: 11px; text-align: center; touch-action: manipulation; width: 100%; transition: all .1s;
-}
+.tab-acc { background: #1e1e1e; border: 2px solid #333; border-radius: 10px; color: #888; cursor: pointer; font-family: inherit; font-size: 14px; font-weight: 600; padding: 11px; text-align: center; touch-action: manipulation; width: 100%; transition: all .1s; }
 .tab-acc.act-ent { background: #1a2e1a; border-color: #4a7e4a; color: #8fba92; }
 .tab-acc.act-sal { background: #2e1a1a; border-color: #7e3a3a; color: #e08080; }
 .tabla-accs { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 12px; }
@@ -87,27 +55,18 @@ html, body { background: #141414; color: #fff; font-family: 'Segoe UI', system-u
 .fila-prod:first-child { border-radius: 12px 12px 0 0; }
 .fila-prod:last-child  { border-radius: 0 0 12px 12px; border-bottom: none; }
 .fp-info { flex: 1; }
-.fp-nm  { font-size: 14px; font-weight: 600; color: #fff; }
+.fp-nm { font-size: 14px; font-weight: 600; color: #fff; }
 .fp-cat { font-size: 11px; color: #555; margin-top: 2px; }
 .fp-qty { width: 84px; background: #111; border: 2px solid #333; border-radius: 9px; color: #fff; font-size: 18px; font-weight: 700; padding: 8px 5px; text-align: center; font-family: inherit; flex-shrink: 0; }
 .fp-qty:focus { outline: none; border-color: #5e7e62; background: #151e15; }
 .fp-unit { font-size: 12px; color: #555; min-width: 26px; text-align: right; flex-shrink: 0; }
 .fp-qty.lleno { background: #1a2e1a; border-color: #4a7e4a; color: #8fba92; }
-
-/* ── Lista de búsqueda (merma) ── */
 .lista-search { display: flex; flex-direction: column; gap: 7px; max-height: 48vh; overflow-y: auto; margin-bottom: 14px; }
-.btn-ing {
-  background: #1e1e1e; border: 2px solid #2a2a2a; border-radius: 11px; color: #fff;
-  cursor: pointer; font-family: inherit; padding: 14px 16px; text-align: left; width: 100%;
-  touch-action: manipulation; display: flex; justify-content: space-between; align-items: center;
-  transition: background .1s, border-color .1s;
-}
+.btn-ing { background: #1e1e1e; border: 2px solid #2a2a2a; border-radius: 11px; color: #fff; cursor: pointer; font-family: inherit; padding: 14px 16px; text-align: left; width: 100%; touch-action: manipulation; display: flex; justify-content: space-between; align-items: center; transition: background .1s, border-color .1s; }
 .btn-ing:active, .btn-ing.sel { background: #3a2200; border-color: #c8700a; }
-.btn-ing .bi-nm  { font-size: 14px; font-weight: 700; color: #fff; }
+.btn-ing .bi-nm { font-size: 14px; font-weight: 700; color: #fff; }
 .btn-ing .bi-cat { font-size: 11px; color: #666; margin-top: 2px; }
-.btn-ing .bi-un  { font-size: 13px; color: #e09040; font-weight: 600; }
-
-/* ── Panel cantidad + motivo ── */
+.btn-ing .bi-un { font-size: 13px; color: #e09040; font-weight: 600; }
 .qty-panel { background: #1e1e1e; border-radius: 12px; padding: 16px; margin-bottom: 14px; display: none; }
 .qty-panel.visible { display: block; }
 .qty-lbl { font-size: 14px; font-weight: 700; color: #e09040; margin-bottom: 12px; }
@@ -120,33 +79,26 @@ html, body { background: #141414; color: #fff; font-family: 'Segoe UI', system-u
 .qty-step:active { background: #3a3a3a; }
 .motivo-lbl { font-size: 12px; color: #777; margin-bottom: 6px; display: block; }
 .motivo-sel { width: 100%; background: #111; border: 2px solid #333; border-radius: 10px; color: #fff; font-size: 14px; padding: 10px 12px; font-family: inherit; margin-bottom: 12px; }
-
-/* ── Comentario ── */
 .coment-box { margin-bottom: 14px; }
 .coment-box label { font-size: 12px; color: #777; display: block; margin-bottom: 7px; }
 .coment-box textarea { width: 100%; background: #1a1a1a; border: 2px solid #2a2a2a; border-radius: 10px; color: #fff; font-size: 14px; padding: 10px 14px; font-family: inherit; resize: none; height: 68px; }
 .coment-box textarea:focus { outline: none; border-color: #5e7e62; }
 .coment-box textarea::placeholder { color: #444; }
-
-/* ── Botón enviar ── */
 .btn-env { width: 100%; border: none; border-radius: 12px; color: #fff; font-size: 16px; font-weight: 700; padding: 17px; cursor: pointer; font-family: inherit; touch-action: manipulation; }
-.btn-env.verde   { background: #2d5e35; }
-.btn-env.rojo    { background: #6e2a2a; }
+.btn-env.verde { background: #2d5e35; }
+.btn-env.rojo  { background: #6e2a2a; }
 .btn-env.naranja { background: #7a3e0a; }
 .btn-env:disabled { background: #2a2a2a; color: #555; }
 .resumen { font-size: 12px; color: #555; text-align: center; margin-bottom: 10px; }
 .resumen b { color: #5e9e62; }
-
-/* ── Éxito ── */
 .ok-box { text-align: center; padding: 32px 14px; }
 .ok-icon { font-size: 52px; margin-bottom: 14px; }
-.ok-titulo  { font-size: 18px; font-weight: 700; color: #fff; margin-bottom: 8px; }
+.ok-titulo { font-size: 18px; font-weight: 700; color: #fff; margin-bottom: 8px; }
 .ok-detalle { font-size: 13px; color: #888; line-height: 1.6; margin-bottom: 6px; }
 .ok-detalle b { color: #5e9e62; }
 .ok-btns { display: flex; flex-direction: column; gap: 9px; margin-top: 24px; }
 .ok-btns button { background: #1e1e1e; border: 2px solid #2a2a2a; border-radius: 11px; color: #fff; font-size: 14px; padding: 13px; cursor: pointer; font-family: inherit; touch-action: manipulation; }
 .ok-btns button.p { background: #2d4d30; border-color: #5e7e62; }
-
 .cargando { color: #555; text-align: center; padding: 24px; font-size: 13px; }
 @media (max-width: 480px) { .fp-qty { width: 74px; font-size: 16px; } .fp-nm { font-size: 13px; } }
 </style>
@@ -154,98 +106,60 @@ html, body { background: #141414; color: #fff; font-family: 'Segoe UI', system-u
 <body>
 <div class="ctr">
 
-<!-- PASO 1: PERSONA -->
 <div class="step active" id="step-persona">
   <div class="titulo" style="margin-top:18px">¿Quién eres?</div>
   <div class="grid-personas" id="grid-personas"></div>
 </div>
 
-<!-- PASO 2: ACCIÓN -->
 <div class="step" id="step-accion">
   <button type="button" class="btn-volver" onclick="irPaso('step-persona')">← Volver</button>
   <div class="chip" id="chip-acc"></div>
   <div class="accs">
     <button type="button" class="btn-acc" onclick="iniciarAccionBodega('ENTRADA')">
-      <span class="a-num">+</span>
-      <span>
-        <span class="a-titulo">Recibir mercadería</span>
-        <span class="a-desc">Ingresa productos que llegaron a bodega</span>
-      </span>
+      <span class="a-num">+</span><span><span class="a-titulo">Recibir mercadería</span><span class="a-desc">Ingresa productos que llegaron a bodega</span></span>
     </button>
     <button type="button" class="btn-acc rojo" onclick="iniciarAccionBodega('SALIDA')">
-      <span class="a-num">−</span>
-      <span>
-        <span class="a-titulo">Sacar de bodega</span>
-        <span class="a-desc">Retira productos que se usaron o devolvieron</span>
-      </span>
+      <span class="a-num">−</span><span><span class="a-titulo">Sacar de bodega</span><span class="a-desc">Retira productos que se usaron o devolvieron</span></span>
     </button>
     <button type="button" class="btn-acc naranja" onclick="irPaso('step-merma')">
-      <span class="a-num" style="color:#e09040">!</span>
-      <span>
-        <span class="a-titulo">Registrar merma</span>
-        <span class="a-desc">Roto, vencido, error de preparación o pérdida</span>
-      </span>
+      <span class="a-num" style="color:#e09040">!</span><span><span class="a-titulo">Registrar merma</span><span class="a-desc">Roto, vencido, error de preparación o pérdida</span></span>
     </button>
     <button type="button" class="btn-acc" onclick="irPaso('step-conteo')" style="border-color:#3a3a5a">
-      <span class="a-num" style="color:#8080e0">&#10003;</span>
-      <span>
-        <span class="a-titulo">Contar inventario</span>
-        <span class="a-desc">Conteo físico de los productos de tu área</span>
-      </span>
+      <span class="a-num" style="color:#8080e0">&#10003;</span><span><span class="a-titulo">Contar inventario</span><span class="a-desc">Conteo físico de los productos de tu área</span></span>
     </button>
   </div>
 </div>
 
-<!-- PASO 3a: BUSCAR PROVEEDOR -->
 <div class="step" id="step-proveedor">
   <button type="button" class="btn-volver" onclick="irPaso('step-accion')">← Volver</button>
   <div class="chip" id="chip-prov"></div>
-  <div class="buscador">
-    <input type="search" id="buscar-prov" placeholder="Buscar proveedor o producto…" oninput="filtrarProvs()" autocomplete="off">
-  </div>
-  <div id="lista-provs">
-    <div class="cargando" id="msg-carga">Cargando proveedores…</div>
-  </div>
+  <div class="buscador"><input type="search" id="buscar-prov" placeholder="Buscar proveedor o producto…" oninput="filtrarProvs()" autocomplete="off"></div>
+  <div id="lista-provs"><div class="cargando" id="msg-carga">Conectando…</div></div>
 </div>
 
-<!-- PASO 3b: PRODUCTOS DEL PROVEEDOR (entrada/salida masiva) -->
 <div class="step" id="step-ingreso">
   <button type="button" class="btn-volver" onclick="irPaso('step-proveedor')">← Volver</button>
   <div class="chip" id="chip-ing"></div>
   <div class="prov-header" id="prov-header"></div>
   <div class="accion-tabs">
     <button type="button" class="tab-acc act-ent" id="tab-ent" onclick="setAccion('ENTRADA')">Ingresar a bodega</button>
-    <button type="button" class="tab-acc"         id="tab-sal" onclick="setAccion('SALIDA')">Sacar de bodega</button>
+    <button type="button" class="tab-acc" id="tab-sal" onclick="setAccion('SALIDA')">Sacar de bodega</button>
   </div>
-  <div class="tabla-accs">
-    <span id="cnt-llenos">0 productos con cantidad</span>
-    <button type="button" class="tabla-acc-btn" onclick="limpiarCants()">Limpiar todo</button>
-  </div>
+  <div class="tabla-accs"><span id="cnt-llenos">0 productos con cantidad</span><button type="button" class="tabla-acc-btn" onclick="limpiarCants()">Limpiar todo</button></div>
   <div class="tabla-prods" id="tabla-prods"></div>
-  <div class="coment-box">
-    <label>Comentario general (opcional)</label>
-    <textarea id="coment-ing" placeholder="ej. llegó completo, faltó algo, llegó con nota de crédito…"></textarea>
-  </div>
+  <div class="coment-box"><label>Comentario general (opcional)</label><textarea id="coment-ing" placeholder="ej. llegó completo, faltó algo…"></textarea></div>
   <div class="resumen" id="resumen-ing"></div>
   <button type="button" class="btn-env verde" id="btn-env-ing" onclick="enviarIngreso()">Registrar entrada</button>
 </div>
 
-<!-- PASO 3c: MERMA — buscar producto -->
 <div class="step" id="step-merma">
   <button type="button" class="btn-volver" onclick="irPaso('step-accion')">← Volver</button>
   <div class="chip" id="chip-merma"></div>
-  <div class="buscador">
-    <input type="search" id="buscar-merma" placeholder="Buscar producto a mermar…" oninput="filtrarMerma()" autocomplete="off">
-  </div>
-  <div class="lista-search" id="lista-merma">
-    <div class="cargando">Escribe para buscar un producto…</div>
-  </div>
+  <div class="buscador"><input type="search" id="buscar-merma" placeholder="Buscar producto a mermar…" oninput="filtrarMerma()" autocomplete="off"></div>
+  <div class="lista-search" id="lista-merma"><div class="cargando">Escribe para buscar un producto…</div></div>
   <div class="qty-panel" id="qty-merma-panel">
     <div class="qty-lbl" id="qty-merma-lbl"></div>
-    <div class="qty-row">
-      <input type="number" id="qty-merma-val" min="0.01" step="any" placeholder="0" inputmode="decimal">
-      <span class="qu" id="qty-merma-unit"></span>
-    </div>
+    <div class="qty-row"><input type="number" id="qty-merma-val" min="0.01" step="any" placeholder="0" inputmode="decimal"><span class="qu" id="qty-merma-unit"></span></div>
     <div class="qty-steps">
       <button type="button" class="qty-step" onclick="ajMerma(-1)">−1</button>
       <button type="button" class="qty-step" onclick="ajMerma(+1)">+1</button>
@@ -259,35 +173,23 @@ html, body { background: #141414; color: #fff; font-family: 'Segoe UI', system-u
       <option value="Robo o pérdida">Robo o pérdida</option>
       <option value="Otro">Otro</option>
     </select>
-    <div class="coment-box">
-      <label>Detalle adicional (opcional)</label>
-      <textarea id="coment-merma" placeholder="ej. se cayó la bolsa, llegó vencida del proveedor…"></textarea>
-    </div>
+    <div class="coment-box"><label>Detalle adicional (opcional)</label><textarea id="coment-merma" placeholder="ej. se cayó la bolsa…"></textarea></div>
     <button type="button" class="btn-env naranja" id="btn-env-merma" onclick="enviarMerma()">Registrar merma</button>
   </div>
 </div>
 
-<!-- PASO 3d: CONTAR INVENTARIO -->
 <div class="step" id="step-conteo">
   <button type="button" class="btn-volver" onclick="irPaso('step-accion')">← Volver</button>
   <div class="chip" id="chip-conteo"></div>
-  <div class="prov-header" style="margin-bottom:12px">
-    <div class="ph-nm">Conteo físico</div>
-    <div class="ph-cnt" id="cnt-conteo-desc">Solo productos de tu área y que importa controlar</div>
-  </div>
+  <div class="prov-header" style="margin-bottom:12px"><div class="ph-nm">Conteo físico</div><div class="ph-cnt" id="cnt-conteo-desc">Solo productos de tu área y que importa controlar</div></div>
   <div class="tabla-prods" id="tabla-conteo"></div>
-  <div class="coment-box">
-    <label>Observaciones generales (opcional)</label>
-    <textarea id="coment-conteo" placeholder="ej. faltaba luz en bodega, algunos envases dañados…"></textarea>
-  </div>
-  <button type="button" class="btn-env" id="btn-env-conteo" onclick="enviarConteo()"
-          style="background:#4040a0">Enviar conteo</button>
+  <div class="coment-box"><label>Observaciones generales (opcional)</label><textarea id="coment-conteo" placeholder="ej. faltaba luz en bodega…"></textarea></div>
+  <button type="button" class="btn-env" id="btn-env-conteo" onclick="enviarConteo()" style="background:#4040a0">Enviar conteo</button>
 </div>
 
-<!-- PASO 4: ÉXITO -->
 <div class="step" id="step-ok">
   <div class="ok-box">
-    <div class="ok-icon"   id="ok-icon">✅</div>
+    <div class="ok-icon" id="ok-icon">✅</div>
     <div class="ok-titulo" id="ok-titulo"></div>
     <div class="ok-detalle" id="ok-detalle"></div>
     <div class="ok-detalle" id="ok-quien" style="margin-top:4px;color:#555"></div>
@@ -298,10 +200,8 @@ html, body { background: #141414; color: #fff; font-family: 'Segoe UI', system-u
 </div>
 
 <script>
-// ══ URL del Apps Script — NO editar esta línea manualmente ══
 const AS_URL = 'https://script.google.com/macros/s/AKfycbxT4ky7jnRfTifovP3NEZCeynV4kZKBnZ6jjuvVd3Kzr1KlUkpMKc7HVV_YrK3J_3oC/exec';
 
-// ══ Personal y su estación ══
 const PERSONAL = [
   { nombre:'Sergio',    rol:'Barra',    est:'BARRA'    },
   { nombre:'Kari',      rol:'Cocina',   est:'COCINA'   },
@@ -317,47 +217,48 @@ const PERSONAL = [
 const CAT = { CAF:'Café',LAC:'Lácteos',FRV:'Frutas y Verduras',FVR:'Frutas y Verduras',ABA:'Abarrotes',SEM:'Semillas',EMB:'Embutidos',QUE:'Quesos',CAR:'Carnes',CON:'Condimentos',PAN:'Panes',BEB:'Bebidas',BOL:'Bollería',BOLL:'Bollería',SUB:'Preparaciones',SR:'Preparaciones' };
 const catDe = id => CAT[((id||'').match(/^[A-Za-z]+/)||[''])[0].toUpperCase()] || 'Otros';
 
-// ══ Estado ══
-let persona = '', personaRol = '', personaEst = '';
-let ingFlat = [];         // todos los ingredientes en lista plana
-let ingMiEst = [];        // ingredientes de mi estación
-let proveedores = {};     // agrupados por proveedor (solo de mi estación)
-let provActual  = '';
-let accionActual = 'ENTRADA';
-let mermaIng = null;
+let persona='', personaRol='', personaEst='';
+let ingFlat=[], ingMiEst=[], proveedores={}, provActual='';
+let accionActual='ENTRADA', mermaIng=null;
 
-// ══ API ══
-async function api(accion, extra) {
-  if (!AS_URL) return { ok: true, _demo: true, data: [] };
-  try {
-    const r = await fetch(AS_URL, { method:'POST', body: JSON.stringify({ accion, ...extra }) });
-    return r.json();
-  } catch(e) { return { ok: false, error: e.message }; }
-}
-
-// ══ Inicialización ══
-window.addEventListener('DOMContentLoaded', async () => {
-  // Botones de persona
-  document.getElementById('grid-personas').innerHTML = PERSONAL.map(p =>
-    `<button type="button" class="btn-persona" onclick="elegirPersona('${p.nombre}','${p.rol}','${p.est}')">
-       <span class="p-nm">${p.nombre}</span>
-       <span class="p-rol">${p.rol}</span>
-     </button>`
-  ).join('');
-  // Cargar ingredientes (en segundo plano)
-  cargarIngredientes();
-});
-
-// Clave y TTL del caché local (1 hora — los ingredientes no cambian a cada rato)
 const CACHE_KEY = 'rr_ings_v2';
 const CACHE_TTL = 60 * 60 * 1000;
 
+// ── Lectura vía GET (sin CORS issues) ──
+async function apiGet(accion) {
+  try {
+    const resp = await fetch(AS_URL + '?accion=' + encodeURIComponent(accion));
+    return JSON.parse(await resp.text());
+  } catch(e) { return { ok: false, error: e.message }; }
+}
+
+// ── Escritura vía POST no-cors (dato se envía, asumimos éxito) ──
+async function api(accion, extra) {
+  if (!AS_URL) return { ok: true, _demo: true };
+  try {
+    await fetch(AS_URL, {
+      method: 'POST', mode: 'no-cors',
+      body: JSON.stringify({ accion, ...extra }),
+    });
+    return { ok: true };
+  } catch(e) { return { ok: false, error: e.message }; }
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('grid-personas').innerHTML = PERSONAL.map(p =>
+    `<button type="button" class="btn-persona" onclick="elegirPersona('${p.nombre}','${p.rol}','${p.est}')">
+       <span class="p-nm">${p.nombre}</span><span class="p-rol">${p.rol}</span>
+     </button>`
+  ).join('');
+  cargarIngredientes();
+});
+
 function procesarIngredientes(data) {
-  ingFlat = (data || []).map(row => ({
-    id: row[0], nombre: row[1], unidad: row[2],
-    stockMinimo: +row[3]||0, costoActual: +row[4]||0,
-    proveedor: row[5]||'Sin proveedor', seguimiento: row[6]||'NORMAL',
-    estacion: (row[7]||'').toUpperCase(), cat: catDe(row[0]),
+  ingFlat = (data||[]).map(row => ({
+    id:row[0], nombre:row[1], unidad:row[2],
+    stockMinimo:+row[3]||0, costoActual:+row[4]||0,
+    proveedor:row[5]||'Sin proveedor', seguimiento:row[6]||'NORMAL',
+    estacion:(row[7]||'').toUpperCase(), cat:catDe(row[0]),
   })).filter(i => i.seguimiento !== 'NO_CONTAR');
   document.getElementById('msg-carga').style.display = 'none';
   actualizarFiltroEstacion();
@@ -366,395 +267,238 @@ function procesarIngredientes(data) {
 async function cargarIngredientes() {
   const msgEl = document.getElementById('msg-carga');
 
-  // Caché local: desde la segunda vez carga INSTANTÁNEO
+  // Caché: desde la segunda vez carga instantáneo
   try {
-    const c = JSON.parse(localStorage.getItem(CACHE_KEY) || 'null');
-    if (c && Date.now() - c.ts < CACHE_TTL && c.data?.length) {
+    const c = JSON.parse(localStorage.getItem(CACHE_KEY)||'null');
+    if (c && Date.now()-c.ts < CACHE_TTL && c.data?.length) {
       procesarIngredientes(c.data);
-      fetch(AS_URL, { method:'POST', body: JSON.stringify({ accion:'getIngredientes' }) })
-        .then(r => r.json()).then(r => {
-          if (r.ok && r.data?.length)
-            localStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), data: r.data }));
-        }).catch(() => {});
+      apiGet('getIngredientes').then(r => {
+        if (r.ok && r.data?.length)
+          localStorage.setItem(CACHE_KEY, JSON.stringify({ ts:Date.now(), data:r.data }));
+      }).catch(()=>{});
       return;
     }
   } catch(e) {}
 
-  // Primera vez: conecta con timeout de 30 segundos
   msgEl.style.display = 'block';
-  msgEl.textContent = 'Conectando… (puede tardar unos segundos la primera vez)';
+  msgEl.textContent = 'Conectando… (primera vez puede tardar)';
 
-  try {
-    const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), 30000);
-    const resp = await fetch(AS_URL, {
-      method: 'POST',
-      body: JSON.stringify({ accion: 'getIngredientes' }),
-      signal: ctrl.signal,
-    });
-    clearTimeout(timer);
-    const r = await resp.json();
-    if (r.ok && r.data?.length) {
-      localStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), data: r.data }));
-      procesarIngredientes(r.data);
-    } else {
-      throw new Error(r.error || 'Sin datos');
-    }
-  } catch(e) {
+  const r = await apiGet('getIngredientes');
+
+  if (r.ok && r.data?.length) {
+    try { localStorage.setItem(CACHE_KEY, JSON.stringify({ ts:Date.now(), data:r.data })); } catch(e){}
+    procesarIngredientes(r.data);
+  } else {
     msgEl.innerHTML =
-      '<div style="color:#e05252;margin-bottom:10px">⚠ ' + e.message + '</div>' +
+      '<div style="color:#e05252;margin-bottom:10px">⚠ ' + (r.error||'Sin datos') + '</div>' +
       '<button onclick="cargarIngredientes()" style="background:#333;border:none;color:#fff;' +
-      'padding:12px 22px;border-radius:8px;cursor:pointer;font-family:inherit;font-size:14px">' +
-      'Reintentar</button>';
+      'padding:12px 22px;border-radius:8px;cursor:pointer;font-family:inherit;font-size:14px">Reintentar</button>';
   }
 }
 
-
-// Filtra los ingredientes visibles según la estación de quien está usando la app
 function actualizarFiltroEstacion() {
   ingMiEst = ingFlat.filter(i => {
-    if (personaEst === 'JEFATURA') return true;
+    if (personaEst==='JEFATURA') return true;
     const e = i.estacion;
-    return !e || e === 'TODOS' || e === personaEst;
+    return !e || e==='TODOS' || e===personaEst;
   });
-  // Agrupar por proveedor
   proveedores = {};
   ingMiEst.forEach(i => {
-    if (!proveedores[i.proveedor]) proveedores[i.proveedor] = [];
+    if (!proveedores[i.proveedor]) proveedores[i.proveedor]=[];
     proveedores[i.proveedor].push(i);
   });
-  Object.values(proveedores).forEach(arr => arr.sort((a,b) => a.nombre.localeCompare(b.nombre)));
+  Object.values(proveedores).forEach(arr => arr.sort((a,b)=>a.nombre.localeCompare(b.nombre)));
   renderProveedores('');
 }
 
-// ══ PASO 1: Persona ══
 function elegirPersona(nombre, rol, est) {
-  persona = nombre; personaRol = rol; personaEst = est;
+  persona=nombre; personaRol=rol; personaEst=est;
   const chip = `Sesión de <b>${nombre}</b> (${rol})`;
-  document.getElementById('chip-acc').innerHTML    = chip;
-  document.getElementById('chip-prov').innerHTML   = chip;
-  document.getElementById('chip-ing').innerHTML    = chip;
-  document.getElementById('chip-merma').innerHTML  = chip;
-  actualizarFiltroEstacion(); // re-filtra al saber quién es
+  ['chip-acc','chip-prov','chip-ing','chip-merma'].forEach(id => document.getElementById(id).innerHTML=chip);
+  actualizarFiltroEstacion();
   irPaso('step-accion');
 }
 
-// ══ Inicia la acción de bodega (Ingresar o Sacar) y va a selección de proveedor ══
-function iniciarAccionBodega(tipo) {
-  accionActual = tipo;
-  // Pre-seleccionar el tab correcto cuando llegue a step-ingreso
-  irPaso('step-proveedor');
-}
+function iniciarAccionBodega(tipo) { accionActual=tipo; irPaso('step-proveedor'); }
 
-// ══ PASO 3a: Proveedores ══
-function filtrarProvs() {
-  renderProveedores(document.getElementById('buscar-prov').value.toLowerCase().trim());
-}
+function filtrarProvs() { renderProveedores(document.getElementById('buscar-prov').value.toLowerCase().trim()); }
 
 function renderProveedores(q) {
-  const nombres   = Object.keys(proveedores).sort((a,b) => a.localeCompare(b));
+  const nombres = Object.keys(proveedores).sort((a,b)=>a.localeCompare(b));
   const filtrados = nombres.filter(prov => {
     if (!q) return true;
     if (prov.toLowerCase().includes(q)) return true;
-    return proveedores[prov].some(i => i.nombre.toLowerCase().includes(q));
+    return proveedores[prov].some(i=>i.nombre.toLowerCase().includes(q));
   });
   const cont = document.getElementById('lista-provs');
-  if (!filtrados.length && ingFlat.length === 0) {
-    cont.innerHTML = `<div class="cargando">Cargando datos…</div>`; return;
-  }
-  if (!filtrados.length) {
-    cont.innerHTML = `<div class="vacio">Sin resultados para "${q}"</div>`; return;
-  }
+  if (!filtrados.length && ingFlat.length===0) { cont.innerHTML=`<div class="cargando">Cargando datos…</div>`; return; }
+  if (!filtrados.length) { cont.innerHTML=`<div class="vacio">Sin resultados para "${q}"</div>`; return; }
   cont.innerHTML = `<div class="lista-provs">` +
     filtrados.map(prov => {
-      const cnt  = proveedores[prov].length;
-      const cats = [...new Set(proveedores[prov].map(i=>i.cat))].slice(0,3).join(', ');
-      return `<button type="button" class="btn-prov"
-                      onclick="seleccionarProv('${prov.replace(/'/g,"\\'")}')">
-                <div>
-                  <div class="pr-nm">${prov}</div>
-                  <div class="pr-sub">${cats}</div>
-                </div>
+      const cnt=proveedores[prov].length;
+      const cats=[...new Set(proveedores[prov].map(i=>i.cat))].slice(0,3).join(', ');
+      return `<button type="button" class="btn-prov" onclick="seleccionarProv('${prov.replace(/'/g,"\\'")}')">
+                <div><div class="pr-nm">${prov}</div><div class="pr-sub">${cats}</div></div>
                 <div class="pr-cnt">${cnt} prod.</div>
               </button>`;
     }).join('') + `</div>`;
 }
 
-// ══ PASO 3b: Vista masiva por proveedor ══
 function seleccionarProv(nombre) {
-  provActual = nombre;
-  const ings = proveedores[nombre] || [];
-  // accionActual ya viene seteado desde iniciarAccionBodega(), no lo reseteamos
-  document.getElementById('prov-header').innerHTML =
-    `<div class="ph-nm">${nombre}</div><div class="ph-cnt">${ings.length} producto${ings.length>1?'s':''} de tu área</div>`;
-  const ent = accionActual !== 'SALIDA';
-  document.getElementById('tab-ent').className = ent ? 'tab-acc act-ent' : 'tab-acc';
-  document.getElementById('tab-sal').className = !ent ? 'tab-acc act-sal' : 'tab-acc';
-  document.getElementById('btn-env-ing').className = 'btn-env ' + (ent?'verde':'rojo');
-  document.getElementById('btn-env-ing').textContent = ent ? 'Registrar entrada' : 'Registrar salida';
-  document.getElementById('tabla-prods').innerHTML = ings.map(i =>
+  provActual=nombre;
+  const ings=proveedores[nombre]||[];
+  document.getElementById('prov-header').innerHTML=`<div class="ph-nm">${nombre}</div><div class="ph-cnt">${ings.length} producto${ings.length>1?'s':''} de tu área</div>`;
+  const ent=accionActual!=='SALIDA';
+  document.getElementById('tab-ent').className=ent?'tab-acc act-ent':'tab-acc';
+  document.getElementById('tab-sal').className=!ent?'tab-acc act-sal':'tab-acc';
+  document.getElementById('btn-env-ing').className='btn-env '+(ent?'verde':'rojo');
+  document.getElementById('btn-env-ing').textContent=ent?'Registrar entrada':'Registrar salida';
+  document.getElementById('tabla-prods').innerHTML=ings.map(i=>
     `<div class="fila-prod">
-       <div class="fp-info">
-         <div class="fp-nm">${i.nombre}</div>
-         <div class="fp-cat">${i.cat}</div>
-       </div>
-       <input type="number" class="fp-qty" id="qty-${i.id}" min="0" step="any"
-              placeholder="—" inputmode="decimal"
+       <div class="fp-info"><div class="fp-nm">${i.nombre}</div><div class="fp-cat">${i.cat}</div></div>
+       <input type="number" class="fp-qty" id="qty-${i.id}" min="0" step="any" placeholder="—" inputmode="decimal"
               oninput="this.classList.toggle('lleno',this.value>0); actualizarResumen()">
        <div class="fp-unit">${i.unidad}</div>
-     </div>`
-  ).join('');
-  document.getElementById('coment-ing').value = '';
+     </div>`).join('');
+  document.getElementById('coment-ing').value='';
   actualizarResumen();
   irPaso('step-ingreso');
 }
 
 function setAccion(tipo) {
-  accionActual = tipo;
-  const ent = tipo === 'ENTRADA';
-  document.getElementById('tab-ent').className = ent ? 'tab-acc act-ent' : 'tab-acc';
-  document.getElementById('tab-sal').className = !ent ? 'tab-acc act-sal' : 'tab-acc';
-  document.getElementById('btn-env-ing').className = 'btn-env ' + (ent?'verde':'rojo');
-  document.getElementById('btn-env-ing').textContent = ent ? 'Registrar entrada' : 'Registrar salida';
+  accionActual=tipo;
+  const ent=tipo==='ENTRADA';
+  document.getElementById('tab-ent').className=ent?'tab-acc act-ent':'tab-acc';
+  document.getElementById('tab-sal').className=!ent?'tab-acc act-sal':'tab-acc';
+  document.getElementById('btn-env-ing').className='btn-env '+(ent?'verde':'rojo');
+  document.getElementById('btn-env-ing').textContent=ent?'Registrar entrada':'Registrar salida';
   actualizarResumen();
 }
 
 function limpiarCants() {
-  document.querySelectorAll('.fp-qty').forEach(i => { i.value=''; i.classList.remove('lleno'); });
+  document.querySelectorAll('.fp-qty').forEach(i=>{i.value='';i.classList.remove('lleno');});
   actualizarResumen();
 }
 
 function actualizarResumen() {
-  const ings   = proveedores[provActual] || [];
-  const llenos = ings.filter(i => parseFloat(document.getElementById('qty-'+i.id)?.value||'') > 0);
-  document.getElementById('cnt-llenos').textContent =
-    llenos.length ? `${llenos.length} producto${llenos.length>1?'s':''} con cantidad` : '0 productos con cantidad';
-  const ent = accionActual === 'ENTRADA';
-  const res = document.getElementById('resumen-ing');
-  const btn = document.getElementById('btn-env-ing');
+  const ings=proveedores[provActual]||[];
+  const llenos=ings.filter(i=>parseFloat(document.getElementById('qty-'+i.id)?.value||'')>0);
+  document.getElementById('cnt-llenos').textContent=llenos.length?`${llenos.length} producto${llenos.length>1?'s':''} con cantidad`:'0 productos con cantidad';
+  const ent=accionActual==='ENTRADA';
+  const res=document.getElementById('resumen-ing');
+  const btn=document.getElementById('btn-env-ing');
   if (llenos.length) {
-    res.innerHTML = `Se ${ent?'ingresarán':'retirarán'} <b>${llenos.length} producto${llenos.length>1?'s':''}</b> de ${provActual}`;
-    btn.disabled = false;
-  } else {
-    res.innerHTML = 'Ingresa al menos una cantidad';
-    btn.disabled = true;
-  }
+    res.innerHTML=`Se ${ent?'ingresarán':'retirarán'} <b>${llenos.length} producto${llenos.length>1?'s':''}</b> de ${provActual}`;
+    btn.disabled=false;
+  } else { res.innerHTML='Ingresa al menos una cantidad'; btn.disabled=true; }
 }
 
 async function enviarIngreso() {
-  const ings  = proveedores[provActual] || [];
-  const ahora = new Date();
-  const fecha = ahora.toISOString().slice(0,10);
-  const hora  = ahora.toTimeString().slice(0,5);
-  const coment= document.getElementById('coment-ing').value.trim();
-  const ent   = accionActual === 'ENTRADA';
-  const btn   = document.getElementById('btn-env-ing');
-  btn.disabled = true; btn.textContent = 'Guardando…';
-
-  const aGuardar = ings.map(i => ({
-    ing: i, qty: parseFloat(document.getElementById('qty-'+i.id)?.value||'')||0
-  })).filter(x => x.qty > 0);
-
-  if (!aGuardar.length) {
-    btn.disabled = false; btn.textContent = ent?'Registrar entrada':'Registrar salida'; return;
-  }
-  const movs = aGuardar.map(({ing,qty}) => ({
-    fecha: ahora.toISOString(), tipo: ent?'ENTRADA':'SALIDA_BODEGA',
-    idIngrediente: ing.id, nombreIngrediente: ing.nombre,
-    cantidad: ent?qty:-qty, unidad: ing.unidad, costoUnitario: ing.costoActual||'',
-    referencia: `${ent?'Entrada':'Salida'} — ${provActual}`, usuario: persona, comentario: coment,
+  const ings=proveedores[provActual]||[];
+  const ahora=new Date(), fecha=ahora.toISOString().slice(0,10), hora=ahora.toTimeString().slice(0,5);
+  const coment=document.getElementById('coment-ing').value.trim();
+  const ent=accionActual==='ENTRADA';
+  const btn=document.getElementById('btn-env-ing');
+  btn.disabled=true; btn.textContent='Guardando…';
+  const aGuardar=ings.map(i=>({ing:i,qty:parseFloat(document.getElementById('qty-'+i.id)?.value||'')||0})).filter(x=>x.qty>0);
+  if (!aGuardar.length) { btn.disabled=false; btn.textContent=ent?'Registrar entrada':'Registrar salida'; return; }
+  const movs=aGuardar.map(({ing,qty})=>({
+    fecha:ahora.toISOString(), tipo:ent?'ENTRADA':'SALIDA_BODEGA',
+    idIngrediente:ing.id, nombreIngrediente:ing.nombre,
+    cantidad:ent?qty:-qty, unidad:ing.unidad, costoUnitario:ing.costoActual||'',
+    referencia:`${ent?'Entrada':'Salida'} — ${provActual}`, usuario:persona, comentario:coment,
   }));
-  const msg = `${persona} registró ${ent?'entrada':'salida'} de ${aGuardar.length} producto(s) de ${provActual}`;
-  try {
-    await api('registrarEntradaMasiva', { movimientos:movs, mensaje:msg, fecha, hora, usuario:persona, proveedor:provActual });
-    mostrarOk(ent?'✅':'📤', ent?'Entrada registrada':'Salida registrada',
-      `<b>${aGuardar.length} producto${aGuardar.length>1?'s':''}</b> de <b>${provActual}</b>${coment?'<br>'+coment:''}`,
-      `${persona} · ${fecha} ${hora}`,
-      [{ lbl:'Recibir de otro proveedor', p:true, fn:'irPaso("step-proveedor")' },
-       { lbl:'Cambiar acción', fn:'irPaso("step-accion")' }]
-    );
-  } catch(e) {
-    alert('Error: '+e.message);
-    btn.disabled=false; btn.textContent=ent?'Registrar entrada':'Registrar salida';
-  }
+  const msg=`${persona} registró ${ent?'entrada':'salida'} de ${aGuardar.length} producto(s) de ${provActual}`;
+  await api('registrarEntradaMasiva',{movimientos:movs,mensaje:msg,fecha,hora,usuario:persona,proveedor:provActual});
+  mostrarOk(ent?'✅':'📤',ent?'Entrada registrada':'Salida registrada',
+    `<b>${aGuardar.length} producto${aGuardar.length>1?'s':''}</b> de <b>${provActual}</b>${coment?'<br>'+coment:''}`,
+    `${persona} · ${fecha} ${hora}`,
+    [{lbl:'Recibir de otro proveedor',p:true,fn:'irPaso("step-proveedor")'},{lbl:'Cambiar acción',fn:'irPaso("step-accion")'}]);
 }
 
-// ══ PASO 3c: Merma ══
 function filtrarMerma() {
-  const q = document.getElementById('buscar-merma').value.toLowerCase().trim();
-  const cont = document.getElementById('lista-merma');
-  if (!q) { cont.innerHTML = '<div class="cargando">Escribe para buscar un producto…</div>'; return; }
-  const items = ingMiEst.filter(i => i.nombre.toLowerCase().includes(q) || i.id.toLowerCase().includes(q))
-    .sort((a,b)=>a.nombre.localeCompare(b.nombre)).slice(0,40);
-  if (!items.length) { cont.innerHTML = `<div class="vacio">Sin resultados para "${q}"</div>`; return; }
-  cont.innerHTML = items.map(i =>
-    `<button type="button" class="btn-ing${mermaIng&&mermaIng.id===i.id?' sel':''}"
-             onclick="selMerma('${i.id}')">
-       <div>
-         <div class="bi-nm">${i.nombre}</div>
-         <div class="bi-cat">${i.cat}</div>
-       </div>
-       <div class="bi-un">${i.unidad}</div>
-     </button>`
-  ).join('');
+  const q=document.getElementById('buscar-merma').value.toLowerCase().trim();
+  const cont=document.getElementById('lista-merma');
+  if (!q){cont.innerHTML='<div class="cargando">Escribe para buscar un producto…</div>';return;}
+  const items=ingMiEst.filter(i=>i.nombre.toLowerCase().includes(q)||i.id.toLowerCase().includes(q)).sort((a,b)=>a.nombre.localeCompare(b.nombre)).slice(0,40);
+  if (!items.length){cont.innerHTML=`<div class="vacio">Sin resultados para "${q}"</div>`;return;}
+  cont.innerHTML=items.map(i=>`<button type="button" class="btn-ing${mermaIng&&mermaIng.id===i.id?' sel':''}" onclick="selMerma('${i.id}')">
+    <div><div class="bi-nm">${i.nombre}</div><div class="bi-cat">${i.cat}</div></div><div class="bi-un">${i.unidad}</div></button>`).join('');
 }
 
 function selMerma(id) {
-  mermaIng = ingMiEst.find(i => i.id === id);
-  if (!mermaIng) return;
-  filtrarMerma(); // re-render para marcar sel
-  document.getElementById('qty-merma-lbl').textContent  = mermaIng.nombre;
-  document.getElementById('qty-merma-unit').textContent = mermaIng.unidad;
-  document.getElementById('qty-merma-val').value = '';
-  document.getElementById('coment-merma').value  = '';
-  const panel = document.getElementById('qty-merma-panel');
+  mermaIng=ingMiEst.find(i=>i.id===id); if (!mermaIng) return;
+  filtrarMerma();
+  document.getElementById('qty-merma-lbl').textContent=mermaIng.nombre;
+  document.getElementById('qty-merma-unit').textContent=mermaIng.unidad;
+  document.getElementById('qty-merma-val').value='';
+  document.getElementById('coment-merma').value='';
+  const panel=document.getElementById('qty-merma-panel');
   panel.classList.add('visible');
-  panel.scrollIntoView({ behavior:'smooth', block:'nearest' });
+  panel.scrollIntoView({behavior:'smooth',block:'nearest'});
   document.getElementById('qty-merma-val').focus();
 }
 
-function ajMerma(d) {
-  const inp = document.getElementById('qty-merma-val');
-  inp.value = Math.max(0, (parseFloat(inp.value)||0) + d);
-}
+function ajMerma(d) { const inp=document.getElementById('qty-merma-val'); inp.value=Math.max(0,(parseFloat(inp.value)||0)+d); }
 
 async function enviarMerma() {
   if (!mermaIng) return;
-  const cant = parseFloat(document.getElementById('qty-merma-val').value);
-  if (!cant || cant <= 0) { document.getElementById('qty-merma-val').focus(); return; }
-  const motivo = document.getElementById('motivo-merma').value;
-  const coment = document.getElementById('coment-merma').value.trim();
-  const btn    = document.getElementById('btn-env-merma');
-  btn.disabled = true; btn.textContent = 'Guardando…';
-  const ahora  = new Date();
-  const fecha  = ahora.toISOString().slice(0,10);
-  const hora   = ahora.toTimeString().slice(0,5);
-  const msg    = `${persona} registró merma de ${cant} ${mermaIng.unidad} de ${mermaIng.nombre} — ${motivo}`;
-  const movs   = [{
-    fecha: ahora.toISOString(), tipo: 'MERMA',
-    idIngrediente: mermaIng.id, nombreIngrediente: mermaIng.nombre,
-    cantidad: -cant, unidad: mermaIng.unidad, costoUnitario: mermaIng.costoActual||'',
-    referencia: motivo, usuario: persona, comentario: coment,
-  }];
-  try {
-    await api('registrarEntradaMasiva', { movimientos:movs, mensaje:msg, fecha, hora, usuario:persona, proveedor:'' });
-    mermaIng = null;
-    document.getElementById('buscar-merma').value = '';
-    document.getElementById('lista-merma').innerHTML = '<div class="cargando">Escribe para buscar un producto…</div>';
-    document.getElementById('qty-merma-panel').classList.remove('visible');
-    mostrarOk('⚠️','Merma registrada',
-      `<b>${cant} ${movs[0].unidad}</b> de <b>${movs[0].nombreIngrediente}</b><br>Motivo: ${motivo}${coment?'<br>'+coment:''}`,
-      `${persona} · ${fecha} ${hora}`,
-      [{ lbl:'Registrar otra merma', p:true, fn:'irPaso("step-merma")' },
-       { lbl:'Volver a acciones', fn:'irPaso("step-accion")' }]
-    );
-  } catch(e) {
-    alert('Error: '+e.message);
-    btn.disabled=false; btn.textContent='Registrar merma';
-  }
+  const cant=parseFloat(document.getElementById('qty-merma-val').value);
+  if (!cant||cant<=0){document.getElementById('qty-merma-val').focus();return;}
+  const motivo=document.getElementById('motivo-merma').value;
+  const coment=document.getElementById('coment-merma').value.trim();
+  const btn=document.getElementById('btn-env-merma');
+  btn.disabled=true; btn.textContent='Guardando…';
+  const ahora=new Date(), fecha=ahora.toISOString().slice(0,10), hora=ahora.toTimeString().slice(0,5);
+  const msg=`${persona} registró merma de ${cant} ${mermaIng.unidad} de ${mermaIng.nombre} — ${motivo}`;
+  await api('registrarEntradaMasiva',{movimientos:[{fecha:ahora.toISOString(),tipo:'MERMA',idIngrediente:mermaIng.id,nombreIngrediente:mermaIng.nombre,cantidad:-cant,unidad:mermaIng.unidad,costoUnitario:mermaIng.costoActual||'',referencia:motivo,usuario:persona,comentario:coment}],mensaje:msg,fecha,hora,usuario:persona,proveedor:''});
+  mermaIng=null;
+  document.getElementById('buscar-merma').value='';
+  document.getElementById('lista-merma').innerHTML='<div class="cargando">Escribe para buscar un producto…</div>';
+  document.getElementById('qty-merma-panel').classList.remove('visible');
+  mostrarOk('⚠️','Merma registrada',`<b>${cant} ${mermaIng?.unidad||''}</b><br>Motivo: ${motivo}${coment?'<br>'+coment:''}`,`${persona} · ${fecha} ${hora}`,
+    [{lbl:'Registrar otra merma',p:true,fn:'irPaso("step-merma")'},{lbl:'Volver a acciones',fn:'irPaso("step-accion")'}]);
 }
 
-// ══ CONTEO INVENTARIO ══
-// Muestra los productos de la estación del usuario, ordenados: CRITICO primero, luego NORMAL.
-// NO muestra los NO_CONTAR (sal, pimienta, especias) — son los de "no importancia".
 function cargarConteo() {
-  const chip = `Conteo · <b>${persona}</b> (${personaRol})`;
-  document.getElementById('chip-conteo').innerHTML = chip;
-
-  const aCont = ingMiEst
-    .filter(i => i.seguimiento === 'CRITICO' || i.seguimiento === 'NORMAL')
-    .sort((a,b) => {
-      if (a.seguimiento === b.seguimiento) return a.nombre.localeCompare(b.nombre);
-      return a.seguimiento === 'CRITICO' ? -1 : 1;
-    });
-
-  document.getElementById('cnt-conteo-desc').textContent =
-    `${aCont.length} productos de tu área (Críticos primero)`;
-
-  document.getElementById('tabla-conteo').innerHTML = aCont.map(i =>
-    `<div class="fila-prod" style="${i.seguimiento==='CRITICO'?'border-left:3px solid #e09040':''}">
-       <div class="fp-info">
-         <div class="fp-nm">${i.nombre}${i.seguimiento==='CRITICO'?' <span style="font-size:10px;color:#e09040">● crítico</span>':''}</div>
-         <div class="fp-cat">${i.cat}${i.stockMinimo?' · mín. '+i.stockMinimo+' '+i.unidad:''}</div>
-       </div>
-       <input type="number" class="fp-qty" id="cnt-${i.id}" min="0" step="any"
-              placeholder="—" inputmode="decimal"
-              oninput="this.classList.toggle('lleno',this.value>=0&&this.value!=='')">
-       <div class="fp-unit">${i.unidad}</div>
-     </div>`
-  ).join('');
+  document.getElementById('chip-conteo').innerHTML=`Conteo · <b>${persona}</b> (${personaRol})`;
+  const aCont=ingMiEst.filter(i=>i.seguimiento==='CRITICO'||i.seguimiento==='NORMAL').sort((a,b)=>{if(a.seguimiento===b.seguimiento)return a.nombre.localeCompare(b.nombre);return a.seguimiento==='CRITICO'?-1:1;});
+  document.getElementById('cnt-conteo-desc').textContent=`${aCont.length} productos de tu área (Críticos primero)`;
+  document.getElementById('tabla-conteo').innerHTML=aCont.map(i=>`<div class="fila-prod" style="${i.seguimiento==='CRITICO'?'border-left:3px solid #e09040':''}">
+    <div class="fp-info"><div class="fp-nm">${i.nombre}${i.seguimiento==='CRITICO'?' <span style="font-size:10px;color:#e09040">● crítico</span>':''}</div><div class="fp-cat">${i.cat}${i.stockMinimo?' · mín. '+i.stockMinimo+' '+i.unidad:''}</div></div>
+    <input type="number" class="fp-qty" id="cnt-${i.id}" min="0" step="any" placeholder="—" inputmode="decimal" oninput="this.classList.toggle('lleno',this.value>=0&&this.value!=='')">
+    <div class="fp-unit">${i.unidad}</div></div>`).join('');
 }
 
 async function enviarConteo() {
-  const ahora  = new Date();
-  const fecha  = ahora.toISOString().slice(0,10);
-  const hora   = ahora.toTimeString().slice(0,5);
-  const coment = document.getElementById('coment-conteo').value.trim();
-  const btn    = document.getElementById('btn-env-conteo');
-
-  const aCont = ingMiEst.filter(i => i.seguimiento === 'CRITICO' || i.seguimiento === 'NORMAL');
-  const registros = aCont
-    .map(i => ({ ing:i, qty: document.getElementById('cnt-'+i.id)?.value }))
-    .filter(x => x.qty !== '' && x.qty !== undefined && x.qty !== null);
-
-  if (!registros.length) { alert('Ingresa al menos una cantidad para enviar el conteo.'); return; }
-
-  btn.disabled = true; btn.textContent = 'Guardando…';
-
-  // Cada conteo se guarda como movimiento tipo AJUSTE_CONTEO en el Sheet
-  const movs = registros.map(({ing, qty}) => ({
-    fecha: ahora.toISOString(), tipo: 'AJUSTE_CONTEO',
-    idIngrediente: ing.id, nombreIngrediente: ing.nombre,
-    cantidad: parseFloat(qty)||0, unidad: ing.unidad, costoUnitario: ing.costoActual||'',
-    referencia: `Conteo físico — ${personaRol}`, usuario: persona,
-    comentario: coment,
-  }));
-
-  const msg = `${persona} envió conteo físico de ${registros.length} producto(s) (${personaRol})`;
-  try {
-    await api('registrarEntradaMasiva', { movimientos:movs, mensaje:msg, fecha, hora, usuario:persona, proveedor:personaRol });
-    mostrarOk('☑️','Conteo registrado',
-      `<b>${registros.length} producto${registros.length>1?'s':''}</b> contados de tu área${coment?'<br>'+coment:''}`,
-      `${persona} · ${fecha} ${hora}`,
-      [{ lbl:'Hacer otro conteo', p:true, fn:'irPaso("step-conteo")' },
-       { lbl:'Volver al inicio', fn:'irPaso("step-accion")' }]
-    );
-  } catch(e) {
-    alert('Error: '+e.message);
-    btn.disabled=false; btn.textContent='Enviar conteo';
-  }
+  const ahora=new Date(), fecha=ahora.toISOString().slice(0,10), hora=ahora.toTimeString().slice(0,5);
+  const coment=document.getElementById('coment-conteo').value.trim();
+  const btn=document.getElementById('btn-env-conteo');
+  const aCont=ingMiEst.filter(i=>i.seguimiento==='CRITICO'||i.seguimiento==='NORMAL');
+  const registros=aCont.map(i=>({ing:i,qty:document.getElementById('cnt-'+i.id)?.value})).filter(x=>x.qty!==''&&x.qty!==undefined);
+  if (!registros.length){alert('Ingresa al menos una cantidad para enviar el conteo.');return;}
+  btn.disabled=true; btn.textContent='Guardando…';
+  const movs=registros.map(({ing,qty})=>({fecha:ahora.toISOString(),tipo:'AJUSTE_CONTEO',idIngrediente:ing.id,nombreIngrediente:ing.nombre,cantidad:parseFloat(qty)||0,unidad:ing.unidad,costoUnitario:ing.costoActual||'',referencia:`Conteo físico — ${personaRol}`,usuario:persona,comentario:coment}));
+  await api('registrarEntradaMasiva',{movimientos:movs,mensaje:`${persona} envió conteo físico de ${registros.length} producto(s) (${personaRol})`,fecha,hora,usuario:persona,proveedor:personaRol});
+  mostrarOk('☑️','Conteo registrado',`<b>${registros.length} producto${registros.length>1?'s':''}</b> contados${coment?'<br>'+coment:''}`,`${persona} · ${fecha} ${hora}`,
+    [{lbl:'Hacer otro conteo',p:true,fn:'irPaso("step-conteo")'},{lbl:'Volver al inicio',fn:'irPaso("step-accion")'}]);
 }
 
-// ══ Pantalla de éxito genérica ══
-function mostrarOk(icon, titulo, detalle, quien, btns) {
-  document.getElementById('ok-icon').textContent    = icon;
-  document.getElementById('ok-titulo').textContent  = titulo;
-  document.getElementById('ok-detalle').innerHTML   = detalle;
-  document.getElementById('ok-quien').textContent   = quien;
-  document.getElementById('ok-btns').innerHTML = btns.map(b =>
-    `<button type="button" class="${b.p?'p':''}" onclick="${b.fn}">${b.lbl}</button>`
-  ).join('');
+function mostrarOk(icon,titulo,detalle,quien,btns) {
+  document.getElementById('ok-icon').textContent=icon;
+  document.getElementById('ok-titulo').textContent=titulo;
+  document.getElementById('ok-detalle').innerHTML=detalle;
+  document.getElementById('ok-quien').textContent=quien;
+  document.getElementById('ok-btns').innerHTML=btns.map(b=>`<button type="button" class="${b.p?'p':''}" onclick="${b.fn}">${b.lbl}</button>`).join('');
   irPaso('step-ok');
 }
 
-// ══ Navegación ══
 function irPaso(id) {
-  document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.step').forEach(s=>s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
-  if (id === 'step-proveedor') {
-    document.getElementById('buscar-prov').value = '';
-    renderProveedores('');
-  }
-  if (id === 'step-merma') {
-    document.getElementById('buscar-merma').value = '';
-    document.getElementById('lista-merma').innerHTML = '<div class="cargando">Escribe para buscar un producto…</div>';
-    document.getElementById('qty-merma-panel').classList.remove('visible');
-    mermaIng = null;
-  }
-  if (id === 'step-conteo') {
-    document.getElementById('coment-conteo').value = '';
-    cargarConteo();
-  }
+  if (id==='step-proveedor'){document.getElementById('buscar-prov').value='';renderProveedores('');}
+  if (id==='step-merma'){document.getElementById('buscar-merma').value='';document.getElementById('lista-merma').innerHTML='<div class="cargando">Escribe para buscar un producto…</div>';document.getElementById('qty-merma-panel').classList.remove('visible');mermaIng=null;}
+  if (id==='step-conteo'){document.getElementById('coment-conteo').value='';cargarConteo();}
 }
 </script>
 </body>
