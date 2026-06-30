@@ -44,13 +44,8 @@ function jsonResp(data) {
   return output;
 }
 
-// ── Validación de PIN ────────────────────────────────────────────────────────
-function validarPin(pin) {
-  const guardado = PropertiesService.getScriptProperties().getProperty('ESTACION_PIN');
-  if (!guardado) return { ok: false, error: 'PIN no configurado aún — hazlo desde el dashboard de inventario' };
-  if (String(pin) !== String(guardado)) return { ok: false, error: 'PIN incorrecto' };
-  return null; // null = OK
-}
+// PIN eliminado — el acceso al tablet se gestiona a nivel de red (WiFi de la cafetería)
+// o con el bloqueo de pantalla de Android, no con un PIN en la app.
 
 // ── Acciones ─────────────────────────────────────────────────────────────────
 function procesarAccion(data) {
@@ -78,10 +73,6 @@ function procesarAccion(data) {
     rows.filter(r => r[0]).forEach(r => { cfg[r[0]] = r[1]; });
     return { ok: true, data: cfg };
   }
-
-  // ── Verificar PIN para todas las acciones de escritura ────────────────────
-  const pinError = validarPin(data.pin);
-  if (pinError) return pinError;
 
   const ss = SpreadsheetApp.openById(SHEET_ID);
 
@@ -128,14 +119,6 @@ function procesarAccion(data) {
     ]);
     // Actualizar fecha último conteo para esta estación en Configuracion
     actualizarConfig(ss, `ultimo_conteo_${(data.rol||'').toLowerCase()}`, data.fecha);
-    return { ok: true };
-  }
-
-  // ── Cambiar PIN (lo hace Jefatura desde el tablet, verificando el PIN actual) ──
-  if (accion === 'cambiarPin') {
-    PropertiesService.getScriptProperties().setProperty('ESTACION_PIN', String(data.nuevoPIN));
-    // También guardar en Configuracion del Sheet para que el dashboard lo refleje
-    actualizarConfig(ss, 'estacion_pin', String(data.nuevoPIN));
     return { ok: true };
   }
 

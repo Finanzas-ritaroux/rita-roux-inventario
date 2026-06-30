@@ -25,20 +25,6 @@ html, body { overflow-x: hidden; background: #1a1a1a; color: #fff; font-family: 
 .step.active { display: block; }
 .step-title { font-size: 14px; color: #999; text-align: center; margin: 12px 0 18px; text-transform: uppercase; letter-spacing: .5px; }
 
-/* ── PIN screen ── */
-.pin-box { background: #222; border-radius: 20px; padding: 28px 20px; text-align: center; margin: 20px 0; }
-.pin-title { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
-.pin-sub { font-size: 12px; color: #888; margin-bottom: 20px; }
-.pin-dots { display: flex; justify-content: center; gap: 14px; margin-bottom: 24px; }
-.pin-dot { width: 16px; height: 16px; border-radius: 50%; background: #333; border: 2px solid #555; transition: all .15s; }
-.pin-dot.filled { background: #7a9e7e; border-color: #7a9e7e; }
-.pin-pad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; max-width: 280px; margin: 0 auto; }
-.pin-key { background: #2a2a2a; border: 2px solid #3a3a3a; border-radius: 14px; color: #fff; font-size: 22px; font-weight: 700; padding: 18px; cursor: pointer; transition: all .1s; user-select: none; -webkit-tap-highlight-color: transparent; }
-.pin-key:active { background: #3a3a3a; transform: scale(.95); }
-.pin-key.del { font-size: 18px; }
-.pin-key.empty { visibility: hidden; }
-.pin-error { color: #e05252; font-size: 13px; margin-top: 12px; min-height: 18px; }
-.pin-modo { font-size: 11px; color: #666; margin-top: 16px; }
 
 /* ── Selección de rol ── */
 .rol-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
@@ -145,38 +131,8 @@ html, body { overflow-x: hidden; background: #1a1a1a; color: #fff; font-family: 
 
 <div class="ctr">
 
-<!-- ══ PASO 0: PIN ══ -->
-<div class="step active" id="step-pin">
-  <div class="pin-box">
-    <div class="pin-title">🔐 Acceso a Bodega</div>
-    <div class="pin-sub">Ingresa el PIN de 4 dígitos</div>
-    <div class="pin-dots" id="pin-dots">
-      <div class="pin-dot" id="pd0"></div>
-      <div class="pin-dot" id="pd1"></div>
-      <div class="pin-dot" id="pd2"></div>
-      <div class="pin-dot" id="pd3"></div>
-    </div>
-    <div class="pin-pad">
-      <button class="pin-key" onclick="pinTecla('1')">1</button>
-      <button class="pin-key" onclick="pinTecla('2')">2</button>
-      <button class="pin-key" onclick="pinTecla('3')">3</button>
-      <button class="pin-key" onclick="pinTecla('4')">4</button>
-      <button class="pin-key" onclick="pinTecla('5')">5</button>
-      <button class="pin-key" onclick="pinTecla('6')">6</button>
-      <button class="pin-key" onclick="pinTecla('7')">7</button>
-      <button class="pin-key" onclick="pinTecla('8')">8</button>
-      <button class="pin-key" onclick="pinTecla('9')">9</button>
-      <button class="pin-key empty" disabled></button>
-      <button class="pin-key" onclick="pinTecla('0')">0</button>
-      <button class="pin-key del" onclick="pinBorrar()">⌫</button>
-    </div>
-    <div class="pin-error" id="pin-error"></div>
-    <div class="pin-modo" id="pin-modo"></div>
-  </div>
-</div>
-
 <!-- ══ PASO 1: Rol ══ -->
-<div class="step" id="step-rol">
+<div class="step active" id="step-rol">
   <div class="step-title">¿Quién ingresa?</div>
   <div class="rol-grid">
     <div class="big-btn" onclick="elegirRol('BARRA','Barra')"><span class="ic">☕</span><span class="nm">Barra</span><span class="sub">Sergio</span></div>
@@ -298,8 +254,7 @@ function estadoVarianza(varianzaPct, unidad) {
 let rolActual = '', rolLabel = '', usuario = '';
 let INGREDIENTES = {}, CONFIG = {};
 let ingSeleccionado = null, catActiva = 'TODOS';
-let stockActual = {};  // stock calculado desde Movimientos
-let conteoItems = [];  // lista de inputs de conteo físico
+let conteoItems = [];
 
 // ─── Reloj ────────────────────────────────────────────
 function tick() {
@@ -312,13 +267,12 @@ tick(); setInterval(tick, 15000);
 // ─── API (Google Apps Script) ─────────────────────────
 async function api(payload) {
   if (!AS_URL) {
-    // Modo sin configurar: avisa pero no bloquea la UI
-    console.warn('AS_URL no configurada');
+    console.warn('AS_URL no configurada — modo demo');
     return { ok: true, _simulado: true };
   }
   const res = await fetch(AS_URL, {
     method: 'POST',
-    body: JSON.stringify({ pin: sessionStorage.getItem('rr_pin') || '', ...payload }),
+    body: JSON.stringify(payload),
   });
   return res.json();
 }
@@ -338,46 +292,6 @@ async function getConfig() {
   return r.ok ? (r.data || {}) : {};
 }
 
-// ─── PIN ──────────────────────────────────────────────
-let pinActual = '';
-
-function pinTecla(d) {
-  if (pinActual.length >= 4) return;
-  pinActual += d;
-  renderPinDots();
-  if (pinActual.length === 4) validarPin();
-}
-
-function pinBorrar() { pinActual = pinActual.slice(0,-1); renderPinDots(); document.getElementById('pin-error').textContent = ''; }
-
-function renderPinDots() {
-  for (let i=0;i<4;i++) document.getElementById(`pd${i}`).classList.toggle('filled', i < pinActual.length);
-}
-
-async function validarPin() {
-  const modoConfig = !AS_URL;
-  if (modoConfig) {
-    // Sin Apps Script: cualquier PIN de 4 dígitos pasa (modo demo/configuración)
-    document.getElementById('pin-modo').textContent = '⚠ Apps Script no configurado todavía — entrando en modo demo';
-    sessionStorage.setItem('rr_pin', pinActual);
-    await precargarDatos();
-    irPaso('step-rol');
-    return;
-  }
-  // Verificar contra el Apps Script
-  const r = await api({ accion: 'registrarEntrada', fecha:'__pin_check__', pin: pinActual, idIngrediente:'' });
-  // Si el PIN es incorrecto, el AS devuelve ok:false con error 'PIN incorrecto'
-  // Si es correcto pero faltan datos, da error distinto
-  if (r.error === 'PIN incorrecto') {
-    pinActual = ''; renderPinDots();
-    document.getElementById('pin-error').textContent = 'PIN incorrecto, inténtalo de nuevo';
-    return;
-  }
-  // PIN válido
-  sessionStorage.setItem('rr_pin', pinActual);
-  await precargarDatos();
-  irPaso('step-rol');
-}
 
 async function precargarDatos() {
   [INGREDIENTES, CONFIG] = await Promise.all([getIngredientes(), getConfig()]);
@@ -559,15 +473,7 @@ async function enviarConteo() {
 
 // ─── Inicialización ───────────────────────────────────
 window.addEventListener('DOMContentLoaded', () => {
-  // Si hay sesión PIN vigente (últimas 8 horas), salta directamente al selector de rol
-  const savedPin = sessionStorage.getItem('rr_pin');
-  const savedTs  = parseInt(sessionStorage.getItem('rr_pin_ts') || '0');
-  if (savedPin && Date.now() - savedTs < 8 * 3600000) {
-    precargarDatos().then(() => irPaso('step-rol'));
-  }
-  if (!AS_URL) {
-    document.getElementById('pin-modo').textContent = '⚙ Configura la URL del Apps Script en estacion.html para producción';
-  }
+  precargarDatos(); // carga ingredientes y config en segundo plano
 });
 </script>
 </body>
