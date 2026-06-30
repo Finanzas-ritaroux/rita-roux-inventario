@@ -124,6 +124,30 @@ function procesarAccion(data) {
     return { ok: true };
   }
 
+  // ── Registrar múltiples movimientos de una vez (entrada masiva por proveedor) ──
+  if (accion === 'registrarEntradaMasiva') {
+    const hojaMovs  = ss.getSheetByName('Movimientos');
+    const hojaNotif = ss.getSheetByName('Notificaciones');
+    if (!hojaMovs) return { ok: false, error: 'Hoja Movimientos no encontrada' };
+    const movs = data.movimientos || [];
+    for (const m of movs) {
+      hojaMovs.appendRow([
+        m.fecha, m.tipo, m.idIngrediente, m.nombreIngrediente,
+        m.cantidad, m.unidad, m.costoUnitario || '',
+        m.referencia || '', m.usuario || '', m.comentario || ''
+      ]);
+    }
+    if (hojaNotif && data.mensaje) {
+      hojaNotif.appendRow([
+        Utilities.getUuid(), data.fecha || '', data.hora || '',
+        data.usuario || '', data.proveedor || '',
+        '', data.proveedor || '', movs.length, '',
+        data.mensaje
+      ]);
+    }
+    return { ok: true, registrados: movs.length };
+  }
+
   return { ok: false, error: `Acción desconocida: ${accion}` };
 }
 
