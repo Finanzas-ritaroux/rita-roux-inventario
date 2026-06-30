@@ -80,10 +80,12 @@ function procesarAccion(data) {
   if (accion === 'registrarEntrada') {
     const hoja = ss.getSheetByName('Movimientos');
     if (!hoja) return { ok: false, error: 'Hoja Movimientos no encontrada' };
+    // tipoMovimiento viene como 'ENTRADA' o 'SALIDA_BODEGA' desde la app del tablet
+    const tipo = data.tipoMovimiento || 'ENTRADA';
     hoja.appendRow([
-      data.fecha, 'ENTRADA', data.idIngrediente, data.nombreIngrediente,
+      data.fecha, tipo, data.idIngrediente, data.nombreIngrediente,
       data.cantidad, data.unidad, data.costoUnitario || '',
-      `Estación ${data.rol}`, data.usuario, ''
+      data.referencia || `Estación ${data.rol}`, data.usuario, ''
     ]);
     // Notificación
     const notif = ss.getSheetByName('Notificaciones');
