@@ -62,24 +62,32 @@
     <div id="lista-alarma-proveedores"></div>
   </div>
 
-  <div class="panel">
-    <div class="panel-title"><span><span class="dot"></span>🗑 Registrar merma rápida</span></div>
-    <div id="picker-merma"></div>
-    <div class="row" style="margin-top:14px;align-items:flex-end">
-      <div class="field" style="width:120px"><label>Cantidad</label><input type="number" id="merma-cant" step="any"></div>
-      <div class="field" style="width:200px"><label>Motivo</label>
-        <select id="merma-motivo">
-          <option>Rotura</option>
-          <option>Caducidad / vencimiento</option>
-          <option>Error de preparación</option>
-          <option>Robo o pérdida</option>
-          <option>Otro</option>
-        </select>
+  <details class="panel" style="cursor:default">
+    <summary style="cursor:pointer;font-weight:700;font-size:14px;padding:4px 0;list-style:none;display:flex;align-items:center;gap:8px">
+      <span class="dot"></span>🗑 Registrar merma rápida <span style="font-size:11px;color:var(--light);font-weight:400;margin-left:auto">▼ expandir</span>
+    </summary>
+    <div style="margin-top:14px">
+      <div class="info-box" style="margin-bottom:12px">Busca el ingrediente o producto para registrar la pérdida.</div>
+      <div class="row" style="align-items:flex-end;flex-wrap:wrap;gap:10px">
+        <div class="field" style="flex:2;min-width:180px"><label>Buscar producto</label>
+          <input type="search" id="merma-buscar" placeholder="Nombre o código…"
+                 list="dl-ingredientes" oninput="mermaSeleccionar()" style="width:100%">
+        </div>
+        <div class="field" style="width:100px"><label>Cantidad</label><input type="number" id="merma-cant" step="any"></div>
+        <div class="field" style="width:180px"><label>Motivo</label>
+          <select id="merma-motivo">
+            <option>Rotura</option>
+            <option>Caducidad / vencimiento</option>
+            <option>Error de preparación</option>
+            <option>Robo o pérdida</option>
+            <option>Otro</option>
+          </select>
+        </div>
+        <button class="btn" onclick="registrarMermaRapida()">Registrar</button>
       </div>
-      <button class="btn" onclick="registrarMermaRapida()">Registrar Merma</button>
-      <span id="merma-status" style="font-size:12px;color:var(--mid)"></span>
+      <span id="merma-status" style="font-size:12px;color:var(--mid);display:block;margin-top:8px"></span>
     </div>
-  </div>
+  </details>
 
   <div class="panel">
     <div class="panel-title">
@@ -164,6 +172,16 @@ let pickerMerma = null;
 let ingredienteMermaSeleccionado = null;
 
 window.addEventListener('DOMContentLoaded', () => gsInit(onAuth));
+
+// Sincroniza la selección del buscador de merma con el ingredienteMermaSeleccionado
+function mermaSeleccionar() {
+  const val = document.getElementById('merma-buscar')?.value?.trim();
+  if (!val) { ingredienteMermaSeleccionado = null; return; }
+  const ing = Object.values(INGREDIENTES).find(i =>
+    `${i.id} — ${i.nombre}` === val || i.nombre.toLowerCase() === val.toLowerCase() || i.id === val
+  );
+  ingredienteMermaSeleccionado = ing || null;
+}
 
 async function onAuth() {
   await invInitSheet();
@@ -273,7 +291,8 @@ function estado(stock, minimo, seguimiento) {
 
 async function registrarMermaRapida() {
   const status = document.getElementById('merma-status');
-  if (!ingredienteMermaSeleccionado) { status.textContent = '⚠ Elige un producto de la lista.'; return; }
+  mermaSeleccionar(); // intenta resolver la búsqueda antes de validar
+  if (!ingredienteMermaSeleccionado) { status.textContent = '⚠ Escribe el nombre de un producto válido.'; return; }
   const cantidad = parseFloat(document.getElementById('merma-cant').value);
   if (!cantidad || cantidad <= 0) { status.textContent = '⚠ Ingresa una cantidad mayor a 0.'; return; }
 
