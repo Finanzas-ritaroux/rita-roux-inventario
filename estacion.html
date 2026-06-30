@@ -7,489 +7,551 @@
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html, body {
-  background: #1a1a1a; color: #ffffff;
+  background: #141414; color: #fff;
   font-family: 'Segoe UI', system-ui, sans-serif;
   min-height: 100vh; overflow-x: hidden;
 }
 
-/* ── Contenedor centrado ── */
-.ctr { max-width: 520px; margin: 0 auto; padding: 28px 14px 24px; }
-
-/* ── Pasos ── */
+/* ── Layout ── */
+.ctr  { max-width: 560px; margin: 0 auto; padding: 20px 14px 36px; }
 .step { display: none; }
 .step.active { display: block; }
-.step-title {
-  font-size: 15px; color: #aaa; text-align: center;
-  margin-bottom: 22px; text-transform: uppercase; letter-spacing: .8px;
+
+.titulo {
+  font-size: 13px; color: #777; text-align: center;
+  margin-bottom: 20px; text-transform: uppercase; letter-spacing: 1px;
 }
 
-/* ── Botones grandes (rol y persona) ── */
-.btn-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.btn-grid-auto { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px,1fr)); gap: 11px; }
-
-.btn-grande {
-  background: #2a2a2a;
-  border: 2px solid #404040;
-  border-radius: 16px;
-  color: #ffffff;           /* ← explícito: evita el negro por defecto de <button> */
-  cursor: pointer;
-  font-family: inherit;
-  padding: 22px 12px;
-  text-align: center;
-  transition: background .12s, border-color .12s;
-  touch-action: manipulation;
-  width: 100%;
-  /* Sin emojis ni iconos, solo texto */
+/* ── Aviso de configuración ── */
+.aviso-config {
+  background: #1e1200; border: 2px solid #a06030; border-radius: 14px;
+  padding: 22px; text-align: center; margin-bottom: 20px; display: none;
 }
-.btn-grande:active { background: #2d4d30; border-color: #5e7e62; }
-.btn-grande .rol-nm  { font-size: 17px; font-weight: 700; display: block; color: #ffffff; }
-.btn-grande .rol-sub { font-size: 11px;  color: #999;    display: block; margin-top: 5px; }
+.aviso-config p { font-size: 14px; color: #e0a060; line-height: 1.6; }
+.aviso-config code {
+  display: block; background: #111; border-radius: 8px;
+  padding: 8px 12px; margin: 10px 0; font-size: 12px; color: #8fba92;
+  word-break: break-all; text-align: left;
+}
 
-/* ── Botones de acción (Ingresar / Sacar) ── */
-.btn-accion {
-  display: flex; align-items: center; gap: 16px;
-  background: #2a2a2a; border: 2px solid #404040; border-radius: 14px;
-  color: #ffffff; cursor: pointer; font-family: inherit;
-  padding: 20px 18px; text-align: left;
+/* ── Botones de persona ── */
+.grid-personas { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px,1fr)); gap: 10px; }
+.btn-persona {
+  background: #222; border: 2px solid #333; border-radius: 14px;
+  color: #fff; cursor: pointer; font-family: inherit;
+  padding: 22px 10px; text-align: center;
   touch-action: manipulation; width: 100%;
-  transition: background .12s, border-color .12s;
-  margin-bottom: 12px;
-}
-.btn-accion:active { background: #2d4d30; border-color: #5e7e62; }
-.btn-accion.rojo:active { background: #5a1e1e; border-color: #c05050; }
-.btn-accion .a-titulo { font-size: 16px; font-weight: 700; display: block; color: #ffffff; }
-.btn-accion .a-desc   { font-size: 12px; color: #aaa; display: block; margin-top: 4px; }
-
-/* ── Botón de volver ── */
-.btn-volver {
-  background: none; border: none; color: #888;
-  font-size: 14px; cursor: pointer; padding: 0; margin-bottom: 16px;
-  font-family: inherit; touch-action: manipulation;
-}
-
-/* ── Pill de usuario ── */
-.user-pill {
-  display: inline-block; background: #2a2a2a;
-  border: 1px solid #404040; border-radius: 20px;
-  padding: 5px 14px; font-size: 12px; color: #aaa; margin-bottom: 16px;
-}
-.user-pill b { color: #7a9e7e; }
-
-/* ── Búsqueda ── */
-.search-wrap { margin-bottom: 10px; }
-.search-wrap input {
-  width: 100%; background: #222; border: 2px solid #3a3a3a;
-  border-radius: 10px; color: #fff; font-size: 16px; padding: 12px 14px;
-  font-family: inherit;
-}
-.search-wrap input:focus { outline: none; border-color: #5e7e62; }
-.search-wrap input::placeholder { color: #555; }
-
-/* ── Filtros de categoría ── */
-.cats { display: flex; gap: 7px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 10px; scrollbar-width: none; }
-.cats::-webkit-scrollbar { display: none; }
-.cat-pill {
-  background: #222; border: 1px solid #3a3a3a; border-radius: 20px;
-  padding: 6px 14px; font-size: 12px; color: #999;
-  cursor: pointer; white-space: nowrap; flex-shrink: 0;
-  touch-action: manipulation; font-family: inherit; border-top-style: solid;
-}
-.cat-pill.active { background: #2d4d30; border-color: #5e7e62; color: #fff; }
-
-/* ── Grilla de ingredientes ── */
-.ing-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(100px,1fr));
-  gap: 9px; max-height: 42vh; overflow-y: auto;
-}
-.ing-card {
-  background: #222; border: 2px solid #3a3a3a; border-radius: 12px;
-  padding: 12px 6px 10px; text-align: center;
-  cursor: pointer; touch-action: manipulation; font-family: inherit;
-  color: #fff; width: 100%;
   transition: background .1s, border-color .1s;
 }
-.ing-card:active, .ing-card.sel { background: #2d4d30; border-color: #5e7e62; }
-.ing-card .i-nm { font-size: 11.5px; font-weight: 700; line-height: 1.3; color: #fff; }
-.ing-card .i-un { font-size: 10px; color: #888; margin-top: 3px; }
-.ing-card.sel .i-un { color: #8fba92; }
+.btn-persona .p-nm  { font-size: 16px; font-weight: 700; display: block; color: #fff; }
+.btn-persona .p-rol { font-size: 11px; color: #888; display: block; margin-top: 5px; }
+.btn-persona:active { background: #2d4d30; border-color: #5e7e62; }
 
-/* ── Panel de cantidad ── */
-.qty-box { background: #222; border-radius: 14px; padding: 18px; margin-top: 12px; display: none; }
-.qty-box.visible { display: block; }
-.qty-label { font-size: 13px; font-weight: 700; color: #7a9e7e; margin-bottom: 12px; }
-.qty-row { display: flex; align-items: center; gap: 10px; }
-.qty-row input {
-  flex: 1; background: #1a1a1a; border: 2px solid #3a3a3a; border-radius: 10px;
-  color: #fff; font-size: 28px; font-weight: 700; padding: 10px;
-  text-align: center; font-family: inherit;
+/* ── Botón volver ── */
+.btn-volver {
+  background: none; border: none; color: #777; font-size: 14px;
+  cursor: pointer; padding: 0; margin-bottom: 16px; font-family: inherit;
+  touch-action: manipulation; display: block;
 }
-.qty-row input:focus { outline: none; border-color: #5e7e62; }
-.qty-unit { font-size: 13px; color: #888; min-width: 28px; }
-.qty-stepper { display: flex; gap: 7px; margin-top: 10px; }
-.qty-step {
-  background: #2a2a2a; border: none; border-radius: 8px; color: #fff;
-  font-size: 18px; font-weight: 700; padding: 10px 16px;
-  cursor: pointer; flex: 1; font-family: inherit; touch-action: manipulation;
-}
-.qty-step:active { background: #3a3a3a; }
 
-/* ── Botón principal de confirmación ── */
-.btn-confirmar {
-  width: 100%; background: #5e7e62; border: none; border-radius: 12px;
-  color: #fff; font-size: 16px; font-weight: 700;
-  padding: 16px; margin-top: 14px; cursor: pointer;
-  font-family: inherit; letter-spacing: .3px; touch-action: manipulation;
+/* ── Chip de persona activa ── */
+.chip {
+  display: inline-block; background: #222; border: 1px solid #333;
+  border-radius: 20px; padding: 5px 14px; font-size: 12px; color: #888;
+  margin-bottom: 14px;
 }
-.btn-confirmar:disabled { background: #333; color: #666; }
-.btn-confirmar.rojo { background: #943535; }
+.chip b { color: #7a9e7e; }
+
+/* ── Buscador ── */
+.buscador { position: relative; margin-bottom: 12px; }
+.buscador input {
+  width: 100%; background: #1e1e1e; border: 2px solid #333;
+  border-radius: 12px; color: #fff; font-size: 17px;
+  padding: 13px 16px; font-family: inherit;
+}
+.buscador input:focus { outline: none; border-color: #5e7e62; }
+.buscador input::placeholder { color: #555; }
+
+/* ── Lista de proveedores ── */
+.lista-proveedores { display: flex; flex-direction: column; gap: 8px; }
+.btn-proveedor {
+  background: #1e1e1e; border: 2px solid #2a2a2a; border-radius: 13px;
+  color: #fff; cursor: pointer; font-family: inherit;
+  padding: 16px 18px; text-align: left; width: 100%;
+  touch-action: manipulation; display: flex; justify-content: space-between; align-items: center;
+  transition: background .1s, border-color .1s;
+}
+.btn-proveedor:active { background: #2d4d30; border-color: #5e7e62; }
+.btn-proveedor .prov-nm  { font-size: 16px; font-weight: 700; color: #fff; }
+.btn-proveedor .prov-sub { font-size: 11px; color: #888; display: block; margin-top: 3px; }
+.btn-proveedor .prov-cnt { font-size: 13px; color: #5e9e62; font-weight: 700; white-space: nowrap; }
+
+.prov-vacio { color: #555; text-align: center; padding: 30px; font-size: 14px; }
+
+/* ── Vista de productos del proveedor (entrada masiva) ── */
+.prov-header {
+  background: #1e1e1e; border-radius: 12px; padding: 14px 16px;
+  margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;
+}
+.prov-header .ph-nm  { font-size: 17px; font-weight: 700; color: #fff; }
+.prov-header .ph-cnt { font-size: 12px; color: #888; margin-top: 3px; }
+.prov-header .ph-dias{ font-size: 11px; color: #5e9e62; }
+
+/* ── Filas de productos (entrada masiva) ── */
+.tabla-productos { display: flex; flex-direction: column; gap: 0; margin-bottom: 14px; }
+.fila-producto {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 16px; border-bottom: 1px solid #222;
+  background: #1a1a1a;
+}
+.fila-producto:first-child { border-radius: 12px 12px 0 0; }
+.fila-producto:last-child  { border-radius: 0 0 12px 12px; border-bottom: none; }
+.fp-nombre { flex: 1; }
+.fp-nm { font-size: 14px; font-weight: 600; color: #fff; }
+.fp-cat{ font-size: 11px; color: #666; margin-top: 2px; }
+.fp-qty {
+  width: 86px; background: #111; border: 2px solid #333; border-radius: 9px;
+  color: #fff; font-size: 18px; font-weight: 700; padding: 8px 6px;
+  text-align: center; font-family: inherit; flex-shrink: 0;
+}
+.fp-qty:focus { outline: none; border-color: #5e7e62; background: #151e15; }
+.fp-unit { font-size: 12px; color: #666; min-width: 26px; text-align: right; flex-shrink: 0; }
+.fp-qty.lleno { background: #1a2e1a; border-color: #4a7e4a; color: #8fba92; }
+
+/* ── Acción de seleccionar todo vs vaciar ── */
+.tabla-accs {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 8px; font-size: 12px;
+}
+.tabla-accs span { color: #555; }
+.tabla-acc-btn {
+  background: none; border: none; color: #777; font-size: 12px;
+  cursor: pointer; font-family: inherit; touch-action: manipulation; padding: 2px 0;
+}
+
+/* ── Acción (Ingresar / Sacar) ── */
+.accion-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px; }
+.tab-acc {
+  background: #1e1e1e; border: 2px solid #333; border-radius: 11px; color: #888;
+  cursor: pointer; font-family: inherit; font-size: 14px; font-weight: 600;
+  padding: 12px; text-align: center; touch-action: manipulation; width: 100%;
+  transition: all .1s;
+}
+.tab-acc.sel-entrada { background: #1a2e1a; border-color: #4a7e4a; color: #8fba92; }
+.tab-acc.sel-salida  { background: #2e1a1a; border-color: #7e3a3a; color: #e08080; }
+
+/* ── Comentario general ── */
+.comentario-box { margin-bottom: 14px; }
+.comentario-box label { font-size: 12px; color: #777; display: block; margin-bottom: 7px; }
+.comentario-box textarea {
+  width: 100%; background: #1a1a1a; border: 2px solid #2a2a2a; border-radius: 10px;
+  color: #fff; font-size: 14px; padding: 10px 14px; font-family: inherit;
+  resize: none; height: 68px;
+}
+.comentario-box textarea:focus { outline: none; border-color: #5e7e62; }
+.comentario-box textarea::placeholder { color: #444; }
+
+/* ── Botón confirmar ── */
+.btn-enviar {
+  width: 100%; border: none; border-radius: 12px; color: #fff;
+  font-size: 16px; font-weight: 700; padding: 17px; cursor: pointer;
+  font-family: inherit; touch-action: manipulation;
+}
+.btn-enviar.entrada { background: #2d5e35; }
+.btn-enviar.salida  { background: #6e2a2a; }
+.btn-enviar:disabled { background: #2a2a2a; color: #555; }
+
+.resumen-envio {
+  font-size: 12px; color: #666; text-align: center; margin-bottom: 12px;
+}
+.resumen-envio b { color: #5e9e62; }
 
 /* ── Éxito ── */
-.ok-box { text-align: center; padding: 28px 16px; }
-.ok-icon { font-size: 52px; }
-.ok-msg  { font-size: 15px; color: #8fba92; margin: 14px 0 6px; line-height: 1.5; }
-.ok-msg b { color: #fff; }
-.ok-who  { font-size: 11px; color: #555; }
-.ok-acciones { display: flex; flex-direction: column; gap: 9px; margin-top: 22px; }
-.ok-acciones button {
-  background: #2a2a2a; border: 2px solid #3a3a3a; border-radius: 11px;
+.ok-box { text-align: center; padding: 30px 14px; }
+.ok-icon { font-size: 54px; margin-bottom: 14px; }
+.ok-titulo { font-size: 18px; font-weight: 700; color: #fff; margin-bottom: 8px; }
+.ok-detalle { font-size: 13px; color: #888; line-height: 1.6; margin-bottom: 6px; }
+.ok-detalle b { color: #5e9e62; }
+.ok-btns { display: flex; flex-direction: column; gap: 9px; margin-top: 24px; }
+.ok-btns button {
+  background: #1e1e1e; border: 2px solid #2a2a2a; border-radius: 11px;
   color: #fff; font-size: 14px; padding: 13px;
   cursor: pointer; font-family: inherit; touch-action: manipulation;
 }
-.ok-acciones button.primary { background: #2d4d30; border-color: #5e7e62; }
+.ok-btns button.p { background: #2d4d30; border-color: #5e7e62; }
+
+/* ── Cargando ── */
+.cargando { color: #555; text-align: center; padding: 24px; font-size: 13px; }
+
+@media (max-width: 480px) {
+  .fp-qty { width: 76px; font-size: 16px; }
+  .fp-nm  { font-size: 13px; }
+}
 </style>
 </head>
 <body>
 <div class="ctr">
 
-<!-- PASO 1: ROL -->
-<div class="step active" id="step-rol">
-  <div class="step-title" style="margin-top:20px">¿Quién ingresa?</div>
-  <div class="btn-grid-2">
-    <button type="button" class="btn-grande" onclick="elegirRol('BARRA','Barra')">
-      <span class="rol-nm">Barra</span>
-      <span class="rol-sub">Sergio</span>
-    </button>
-    <button type="button" class="btn-grande" onclick="elegirRol('COCINA','Cocina')">
-      <span class="rol-nm">Cocina</span>
-      <span class="rol-sub">Kari · Pao · Sara</span>
-    </button>
-    <button type="button" class="btn-grande" onclick="elegirRol('GAZON','Meseros')">
-      <span class="rol-nm">Meseros</span>
-      <span class="rol-sub">Shuler · Camila · Part time</span>
-    </button>
-    <button type="button" class="btn-grande" onclick="elegirRol('JEFATURA','Jefatura')">
-      <span class="rol-nm">Jefatura</span>
-      <span class="rol-sub">Joshua · Gerardo</span>
-    </button>
-  </div>
+<!-- PASO 0: Aviso de configuración (se oculta cuando AS_URL está listo) -->
+<div class="aviso-config" id="aviso-config">
+  <p>Para que funcione sin iniciar sesión en Google, pega la URL del Apps Script en la variable <b>AS_URL</b> de este archivo.</p>
+  <code>const AS_URL = 'https://script.google.com/macros/s/TU_URL.../exec';</code>
+  <p style="font-size:12px;color:#666;margin-top:6px">Mientras tanto puedes usar la app — los datos no se guardarán en el Sheet.</p>
 </div>
 
-<!-- PASO 2: PERSONA -->
-<div class="step" id="step-persona">
-  <button type="button" class="btn-volver" onclick="irPaso('step-rol')">← Volver</button>
-  <div class="step-title" id="titulo-personas">Elige tu nombre</div>
-  <div class="btn-grid-auto" id="grid-personas"></div>
+<!-- PASO 1: PERSONA -->
+<div class="step active" id="step-persona">
+  <div class="titulo" style="margin-top:16px">¿Quién recibe?</div>
+  <div class="grid-personas" id="grid-personas"></div>
 </div>
 
-<!-- PASO 3: ACCIÓN -->
-<div class="step" id="step-accion">
+<!-- PASO 2: BUSCAR PROVEEDOR -->
+<div class="step" id="step-proveedor">
   <button type="button" class="btn-volver" onclick="irPaso('step-persona')">← Volver</button>
-  <div class="user-pill">Sesión de <b id="lbl-usuario"></b></div>
-  <button type="button" class="btn-accion" onclick="iniciarAccion('ENTRADA')">
-    <span style="font-size:24px">+</span>
-    <span>
-      <span class="a-titulo">Ingresar un producto</span>
-      <span class="a-desc">Suma al stock — llegó mercadería a bodega</span>
-    </span>
-  </button>
-  <button type="button" class="btn-accion rojo" onclick="iniciarAccion('SALIDA')">
-    <span style="font-size:24px">−</span>
-    <span>
-      <span class="a-titulo">Sacar un producto de bodega</span>
-      <span class="a-desc">Resta del stock — se usó o se retiró algo</span>
-    </span>
-  </button>
+  <div class="chip" id="chip-persona"></div>
+  <div class="buscador">
+    <input type="search" id="buscar-input"
+           placeholder="Buscar proveedor o producto…"
+           oninput="filtrarProveedores()" autocomplete="off">
+  </div>
+  <div id="lista-proveedores">
+    <div class="cargando" id="msg-carga">Cargando proveedores…</div>
+  </div>
 </div>
 
-<!-- PASO 4: SELECCIONAR PRODUCTO + CANTIDAD -->
-<div class="step" id="step-producto">
-  <button type="button" class="btn-volver" onclick="irPaso('step-accion')">← Volver</button>
-  <div class="user-pill" id="lbl-accion-activa"></div>
-  <div class="search-wrap">
-    <input type="search" id="ing-search" placeholder="Buscar producto o ingrediente…"
-           oninput="filtrarIng()" autocomplete="off">
-  </div>
-  <div class="cats" id="cat-filters"></div>
-  <div class="ing-grid" id="ing-grid"></div>
+<!-- PASO 3: PRODUCTOS DEL PROVEEDOR (entrada masiva) -->
+<div class="step" id="step-ingreso">
+  <button type="button" class="btn-volver" onclick="irPaso('step-proveedor')">← Volver</button>
+  <div class="chip" id="chip-persona2"></div>
 
-  <div class="qty-box" id="qty-box">
-    <div class="qty-label" id="qty-label"></div>
-    <div class="qty-row">
-      <input type="number" id="qty-val" min="0.01" step="any"
-             placeholder="0" inputmode="decimal">
-      <span class="qty-unit" id="qty-unit"></span>
-    </div>
-    <div class="qty-stepper">
-      <button type="button" class="qty-step" onclick="ajustarQty(-1)">−1</button>
-      <button type="button" class="qty-step" onclick="ajustarQty(+1)">+1</button>
-      <button type="button" class="qty-step" onclick="ajustarQty(+5)">+5</button>
-    </div>
-    <button type="button" class="btn-confirmar" id="btn-confirmar" onclick="confirmar()">
-      Confirmar
+  <div class="prov-header" id="prov-header"></div>
+
+  <!-- Tipo: ingresar o sacar -->
+  <div class="accion-tabs">
+    <button type="button" class="tab-acc sel-entrada" id="tab-ent"
+            onclick="setAccion('ENTRADA')">Ingresar a bodega</button>
+    <button type="button" class="tab-acc"             id="tab-sal"
+            onclick="setAccion('SALIDA')">Sacar de bodega</button>
+  </div>
+
+  <div class="tabla-accs">
+    <span id="cnt-llenos">0 productos con cantidad</span>
+    <button type="button" class="tabla-acc-btn" onclick="limpiarCantidades()">
+      Limpiar todo
     </button>
   </div>
+
+  <div class="tabla-productos" id="tabla-productos"></div>
+
+  <div class="comentario-box">
+    <label>Comentario general (opcional)</label>
+    <textarea id="comentario-gral" placeholder="ej. llegó completo, faltó algo, llegó con nota de crédito…"></textarea>
+  </div>
+
+  <div class="resumen-envio" id="resumen-envio"></div>
+  <button type="button" class="btn-enviar entrada" id="btn-enviar" onclick="enviar()">
+    Registrar entrada
+  </button>
 </div>
 
-<!-- PASO 5: ÉXITO -->
+<!-- PASO 4: ÉXITO -->
 <div class="step" id="step-ok">
   <div class="ok-box">
     <div class="ok-icon" id="ok-icon">✅</div>
-    <div class="ok-msg"  id="ok-msg"></div>
-    <div class="ok-who"  id="ok-who"></div>
-    <div class="ok-acciones">
-      <button type="button" class="primary" id="btn-otro" onclick="otroProducto()">
-        Registrar otro producto
-      </button>
-      <button type="button" onclick="irPaso('step-accion')">Cambiar acción</button>
+    <div class="ok-titulo" id="ok-titulo"></div>
+    <div class="ok-detalle" id="ok-detalle"></div>
+    <div class="ok-detalle" id="ok-quien" style="margin-top:6px"></div>
+    <div class="ok-btns">
+      <button type="button" class="p" onclick="otroProveedor()">Recibir de otro proveedor</button>
       <button type="button" onclick="irPaso('step-persona')">Cambiar persona</button>
     </div>
   </div>
 </div>
 
-</div><!-- /ctr -->
+</div>
 
 <script>
-// ══ URL del Apps Script (pegar aquí la URL de script.google.com) ══
-// Ejemplo: 'https://script.google.com/macros/s/AKfycb.../exec'
-const AS_URL = '';
+// ══════════════════════════════════════════════════════
+// CONFIGURACIÓN — pega aquí la URL del Apps Script
+// (script.google.com → Implementar → URL termina en /exec)
+// ══════════════════════════════════════════════════════
+const AS_URL = 'https://script.google.com/macros/s/AKfycbxT4ky7jnRfTifovP3NEZCeynV4kZKBnZ6jjuvVd3Kzr1KlUkpMKc7HVV_YrK3J_3oC/exec';   // ← PEGAR AQUÍ LA URL DEL APPS SCRIPT
 
-// ══ Personas por rol ══
-const PERSONAS = {
-  BARRA:    ['Sergio'],
-  COCINA:   ['Kari','Pao','Sara'],
-  GAZON:    ['Shuler','Camila','Part Time'],
-  JEFATURA: ['Joshua','Gerardo'],
-};
+// ══ Personal completo ══
+const PERSONAL = [
+  { nombre:'Sergio',      rol:'Barra' },
+  { nombre:'Kari',        rol:'Cocina' },
+  { nombre:'Pao',         rol:'Cocina' },
+  { nombre:'Sara',        rol:'Cocina' },
+  { nombre:'Shuler',      rol:'Meseros' },
+  { nombre:'Camila',      rol:'Meseros' },
+  { nombre:'Part Time',   rol:'Meseros' },
+  { nombre:'Joshua',      rol:'Jefatura' },
+  { nombre:'Gerardo',     rol:'Jefatura' },
+];
 
-// ══ Categorías de ingredientes por prefijo ══
+// ══ Categorías por prefijo ══
 const CAT = { CAF:'Café',LAC:'Lácteos',FRV:'Frutas y Verduras',FVR:'Frutas y Verduras',ABA:'Abarrotes',SEM:'Semillas',EMB:'Embutidos',QUE:'Quesos',CAR:'Carnes',CON:'Condimentos',PAN:'Panes',BEB:'Bebidas',BOL:'Bollería',BOLL:'Bollería',SUB:'Preparaciones',SR:'Preparaciones' };
-const prefijo = id => ((id||'').match(/^[A-Za-z]+/)||[''])[0].toUpperCase();
-const catDe   = id => CAT[prefijo(id)] || 'Otros';
+const catDe = id => CAT[((id||'').match(/^[A-Za-z]+/)||[''])[0].toUpperCase()] || 'Otros';
 
 // ══ Estado ══
-let rolActual = '', rolLabel = '', usuario = '';
-let accionActual = '';   // 'ENTRADA' | 'SALIDA'
-let ingSel = null;
-let catActiva = 'TODOS';
-let INGREDIENTES = {};
-let CONFIG = {};
+let persona = '';
+let proveedores = {};     // { nombre: [ {id, nombre, unidad, catDe, ...} ] }
+let provActual  = '';
+let accionActual= 'ENTRADA';
 
-// ══ API (Google Apps Script) ══
-async function api(payload) {
-  if (!AS_URL) return { ok: true, _demo: true };
+// ══ API sin login ══
+async function api(accion, extra) {
+  if (!AS_URL) return { ok: true, _demo: true, data: [] };
   try {
-    const r = await fetch(AS_URL, { method:'POST', body: JSON.stringify(payload) });
+    const r = await fetch(AS_URL, {
+      method: 'POST',
+      body: JSON.stringify({ accion, ...extra }),
+    });
     return r.json();
   } catch(e) { return { ok: false, error: e.message }; }
 }
 
-async function precargarDatos() {
-  try {
-    const [ri, rc] = await Promise.all([
-      api({ accion:'getIngredientes' }),
-      api({ accion:'getConfig' }),
-    ]);
-    if (ri.ok && ri.data) {
-      INGREDIENTES = {};
-      ri.data.forEach(row => {
-        INGREDIENTES[row[0]] = {
-          id:row[0], nombre:row[1], unidad:row[2],
-          stockMinimo:+row[3]||0, costoActual:+row[4]||0,
-          proveedor:row[5]||'', seguimiento:row[6]||'NORMAL', estacion:row[7]||'',
-        };
-      });
-    }
-    if (rc.ok && rc.data) CONFIG = rc.data;
-  } catch(e) { /* silencioso en modo demo */ }
+// ══ Cargar datos al abrir ══
+window.addEventListener('DOMContentLoaded', async () => {
+  // Mostrar aviso si AS_URL no está configurada
+  if (!AS_URL) document.getElementById('aviso-config').style.display = 'block';
+
+  // Botones de persona
+  const grid = document.getElementById('grid-personas');
+  grid.innerHTML = PERSONAL.map(p =>
+    `<button type="button" class="btn-persona" onclick="elegirPersona('${p.nombre}','${p.rol}')">
+       <span class="p-nm">${p.nombre}</span>
+       <span class="p-rol">${p.rol}</span>
+     </button>`
+  ).join('');
+
+  // Cargar ingredientes agrupados por proveedor
+  cargarProveedores();
+});
+
+async function cargarProveedores() {
+  const r = await api('getIngredientes');
+  const lista = r.data || [];
+  proveedores = {};
+  lista.forEach(row => {
+    const ing = {
+      id: row[0], nombre: row[1], unidad: row[2],
+      stockMinimo: +row[3]||0, costoActual: +row[4]||0,
+      proveedor: row[5]||'Sin proveedor', seguimiento: row[6]||'NORMAL',
+      cat: catDe(row[0]),
+    };
+    if (ing.seguimiento === 'NO_CONTAR') return;
+    if (!proveedores[ing.proveedor]) proveedores[ing.proveedor] = [];
+    proveedores[ing.proveedor].push(ing);
+  });
+  // Ordenar ingredientes dentro de cada proveedor
+  Object.values(proveedores).forEach(arr => arr.sort((a,b)=>a.nombre.localeCompare(b.nombre)));
+  document.getElementById('msg-carga').style.display = 'none';
+
+  if (lista.length === 0 && !AS_URL) {
+    document.getElementById('lista-proveedores').innerHTML =
+      `<div class="cargando">Configura el Apps Script para ver los proveedores.</div>`;
+  } else {
+    renderProveedores('');
+  }
 }
 
-// ══ Navegación entre pasos ══
+// ══ PASO 1: Persona ══
+function elegirPersona(nombre, rol) {
+  persona = nombre;
+  document.getElementById('chip-persona').innerHTML  = `Recibe: <b>${nombre}</b> (${rol})`;
+  document.getElementById('chip-persona2').innerHTML = `Recibe: <b>${nombre}</b> (${rol})`;
+  irPaso('step-proveedor');
+}
+
+// ══ PASO 2: Buscar y seleccionar proveedor ══
+function filtrarProveedores() {
+  const q = document.getElementById('buscar-input').value.toLowerCase().trim();
+  renderProveedores(q);
+}
+
+function renderProveedores(q) {
+  const nombres = Object.keys(proveedores).sort((a,b)=>a.localeCompare(b));
+  const filtrados = nombres.filter(prov => {
+    if (!q) return true;
+    if (prov.toLowerCase().includes(q)) return true;
+    // También busca por nombre de producto dentro del proveedor
+    return proveedores[prov].some(i => i.nombre.toLowerCase().includes(q));
+  });
+
+  if (!filtrados.length) {
+    document.getElementById('lista-proveedores').innerHTML =
+      `<div class="prov-vacio">Sin resultados para "${q}"</div>`;
+    return;
+  }
+
+  document.getElementById('lista-proveedores').innerHTML =
+    `<div class="lista-proveedores">` +
+    filtrados.map(prov => {
+      const cnt   = proveedores[prov].length;
+      const cats  = [...new Set(proveedores[prov].map(i=>i.cat))].slice(0,3).join(', ');
+      return `<button type="button" class="btn-proveedor"
+                      onclick="seleccionarProveedor('${prov.replace(/'/g,"\\'")}')">
+                <div>
+                  <div class="prov-nm">${prov}</div>
+                  <div class="prov-sub">${cats}</div>
+                </div>
+                <div class="prov-cnt">${cnt} prod.</div>
+              </button>`;
+    }).join('') +
+    `</div>`;
+}
+
+// ══ PASO 3: Vista masiva de productos por proveedor ══
+function seleccionarProveedor(nombre) {
+  provActual = nombre;
+  const ings = proveedores[nombre] || [];
+  accionActual = 'ENTRADA';
+
+  // Header del proveedor
+  document.getElementById('prov-header').innerHTML = `
+    <div>
+      <div class="ph-nm">${nombre}</div>
+      <div class="ph-cnt">${ings.length} producto${ings.length>1?'s':''}</div>
+    </div>`;
+
+  // Resetear tabs
+  document.getElementById('tab-ent').className = 'tab-acc sel-entrada';
+  document.getElementById('tab-sal').className = 'tab-acc';
+  document.getElementById('btn-enviar').className    = 'btn-enviar entrada';
+  document.getElementById('btn-enviar').textContent  = 'Registrar entrada';
+
+  // Tabla de productos (todos en lista, cada uno con input de cantidad)
+  document.getElementById('tabla-productos').innerHTML = ings.map(i =>
+    `<div class="fila-producto">
+       <div class="fp-nombre">
+         <div class="fp-nm">${i.nombre}</div>
+         <div class="fp-cat">${i.cat}</div>
+       </div>
+       <input type="number" class="fp-qty" id="qty-${i.id}"
+              min="0" step="any" placeholder="—" inputmode="decimal"
+              onchange="actualizarResumen()"
+              oninput="this.classList.toggle('lleno', this.value>0); actualizarResumen()">
+       <div class="fp-unit">${i.unidad}</div>
+     </div>`
+  ).join('');
+
+  document.getElementById('comentario-gral').value = '';
+  actualizarResumen();
+  irPaso('step-ingreso');
+
+  // Scroll al primer input
+  setTimeout(() => {
+    const primera = document.querySelector('.fp-qty');
+    if (primera) primera.scrollIntoView({ behavior:'smooth', block:'center' });
+  }, 250);
+}
+
+function setAccion(tipo) {
+  accionActual = tipo;
+  const ent = tipo === 'ENTRADA';
+  document.getElementById('tab-ent').className = ent ? 'tab-acc sel-entrada' : 'tab-acc';
+  document.getElementById('tab-sal').className = !ent ? 'tab-acc sel-salida'  : 'tab-acc';
+  document.getElementById('btn-enviar').className   = 'btn-enviar ' + (ent ? 'entrada' : 'salida');
+  document.getElementById('btn-enviar').textContent = ent ? 'Registrar entrada' : 'Registrar salida';
+  actualizarResumen();
+}
+
+function limpiarCantidades() {
+  document.querySelectorAll('.fp-qty').forEach(inp => {
+    inp.value = '';
+    inp.classList.remove('lleno');
+  });
+  actualizarResumen();
+}
+
+function actualizarResumen() {
+  const ings    = proveedores[provActual] || [];
+  const llenos  = ings.filter(i => {
+    const v = parseFloat(document.getElementById('qty-'+i.id)?.value||'');
+    return v > 0;
+  });
+  document.getElementById('cnt-llenos').textContent =
+    llenos.length ? `${llenos.length} producto${llenos.length>1?'s':''} con cantidad` : '0 productos con cantidad';
+  const btn = document.getElementById('btn-enviar');
+  const res = document.getElementById('resumen-envio');
+  if (llenos.length) {
+    const ent = accionActual === 'ENTRADA';
+    res.innerHTML = `Se ${ent?'ingresarán':'retirarán'} <b>${llenos.length} producto${llenos.length>1?'s':''}</b> de ${provActual}`;
+    btn.disabled = false;
+  } else {
+    res.innerHTML = 'Ingresa al menos una cantidad para continuar';
+    btn.disabled = true;
+  }
+}
+
+// ══ Enviar todos los movimientos ══
+async function enviar() {
+  const ings = proveedores[provActual] || [];
+  const ahora = new Date();
+  const fecha = ahora.toISOString().slice(0,10);
+  const hora  = ahora.toTimeString().slice(0,5);
+  const comentarioGral = document.getElementById('comentario-gral').value.trim();
+  const ent   = accionActual === 'ENTRADA';
+  const btn   = document.getElementById('btn-enviar');
+  btn.disabled = true; btn.textContent = 'Guardando…';
+
+  // Solo los que tienen cantidad > 0
+  const aGuardar = ings.map(i => ({
+    ing: i,
+    qty: parseFloat(document.getElementById('qty-'+i.id)?.value||'') || 0,
+  })).filter(x => x.qty > 0);
+
+  if (!aGuardar.length) {
+    btn.disabled = false; btn.textContent = ent ? 'Registrar entrada' : 'Registrar salida';
+    return;
+  }
+
+  const movs = aGuardar.map(({ing, qty}) => ({
+    fecha:              ahora.toISOString(),
+    tipo:               ent ? 'ENTRADA' : 'SALIDA_BODEGA',
+    idIngrediente:      ing.id,
+    nombreIngrediente:  ing.nombre,
+    cantidad:           ent ? qty : -qty,
+    unidad:             ing.unidad,
+    costoUnitario:      ing.costoActual || '',
+    referencia:         `${ent?'Entrada':'Salida'} — ${provActual}`,
+    usuario:            persona,
+    comentario:         comentarioGral,
+  }));
+
+  // Enviar al Apps Script (o simular si no está configurado)
+  const accion = ent ? 'entrada' : 'salida';
+  const msg = `${persona} registró ${ent?'entrada':'salida'} de ${aGuardar.length} producto(s) de ${provActual}`;
+
+  try {
+    await api('registrarEntradaMasiva', { movimientos: movs, mensaje: msg, fecha, hora, usuario: persona, proveedor: provActual });
+
+    // Éxito
+    document.getElementById('ok-icon').textContent = ent ? '✅' : '📤';
+    document.getElementById('ok-titulo').textContent = ent ? 'Entrada registrada' : 'Salida registrada';
+    document.getElementById('ok-detalle').innerHTML =
+      `<b>${aGuardar.length} producto${aGuardar.length>1?'s':''}</b> de <b>${provActual}</b>${comentarioGral ? '<br>'+comentarioGral : ''}`;
+    document.getElementById('ok-quien').textContent = `${persona} · ${fecha} ${hora}`;
+    irPaso('step-ok');
+  } catch(e) {
+    alert('Error: ' + e.message);
+    btn.disabled = false; btn.textContent = ent ? 'Registrar entrada' : 'Registrar salida';
+  }
+}
+
+function otroProveedor() {
+  document.getElementById('buscar-input').value = '';
+  renderProveedores('');
+  irPaso('step-proveedor');
+}
+
+// ══ Navegación ══
 function irPaso(id) {
   document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
-  if (id === 'step-producto') {
-    document.getElementById('ing-search').value = '';
-    catActiva = 'TODOS';
-    ingSel = null;
-    document.getElementById('qty-box').classList.remove('visible');
-    renderCats();
-    filtrarIng();
-  }
 }
-
-// ══ PASO 1 → 2: Elegir rol ══
-function elegirRol(rol, label) {
-  rolActual = rol; rolLabel = label;
-  document.getElementById('titulo-personas').textContent = 'Elige tu nombre';
-  document.getElementById('grid-personas').innerHTML =
-    (PERSONAS[rol]||[]).map(n =>
-      `<button type="button" class="btn-grande" onclick="elegirPersona('${n}')">
-         <span class="rol-nm">${n}</span>
-       </button>`
-    ).join('');
-  irPaso('step-persona');
-}
-
-// ══ PASO 2 → 3: Elegir persona ══
-function elegirPersona(nombre) {
-  usuario = nombre;
-  document.getElementById('lbl-usuario').textContent = `${nombre} · ${rolLabel}`;
-  irPaso('step-accion');
-}
-
-// ══ PASO 3 → 4: Elegir acción ══
-function iniciarAccion(tipo) {
-  accionActual = tipo;
-  const esEntrada = tipo === 'ENTRADA';
-  document.getElementById('lbl-accion-activa').innerHTML =
-    `<b>${usuario}</b> · <b style="color:${esEntrada?'#7a9e7e':'#e05252'}">${esEntrada?'Ingresando':'Sacando'}</b>`;
-  document.getElementById('btn-confirmar').textContent =
-    esEntrada ? 'Confirmar entrada' : 'Confirmar salida';
-  document.getElementById('btn-confirmar').className =
-    'btn-confirmar' + (esEntrada ? '' : ' rojo');
-  irPaso('step-producto');
-}
-
-// ══ PASO 4: Grilla de ingredientes ══
-function ingVisibles() {
-  const ings = Object.values(INGREDIENTES);
-  if (!ings.length) {
-    // Sin datos de la API: devuelve lista vacía (modo demo muestra mensaje)
-    return [];
-  }
-  return ings.filter(i => {
-    if (i.seguimiento === 'NO_CONTAR') return false;
-    if (rolActual !== 'JEFATURA') {
-      const est = i.estacion || '';
-      if (est && est !== rolActual && est !== 'TODOS') return false;
-    }
-    return true;
-  });
-}
-
-function renderCats() {
-  const cats = ['TODOS', ...new Set(ingVisibles().map(i => catDe(i.id)))].sort((a,b)=>a==='TODOS'?-1:1);
-  document.getElementById('cat-filters').innerHTML =
-    cats.map(c =>
-      `<button type="button" class="cat-pill${c===catActiva?' active':''}"
-               onclick="selCat('${c}')">${c}</button>`
-    ).join('');
-}
-function selCat(c) { catActiva = c; renderCats(); filtrarIng(); }
-
-function filtrarIng() {
-  const q = (document.getElementById('ing-search').value||'').toLowerCase();
-  let items = ingVisibles();
-  if (catActiva !== 'TODOS') items = items.filter(i => catDe(i.id) === catActiva);
-  if (q) items = items.filter(i => i.nombre.toLowerCase().includes(q) || i.id.toLowerCase().includes(q));
-  items.sort((a,b) => a.nombre.localeCompare(b.nombre));
-
-  const grid = document.getElementById('ing-grid');
-  if (!items.length) {
-    grid.innerHTML = '<div style="color:#555;padding:18px;grid-column:1/-1;text-align:center">' +
-      (Object.keys(INGREDIENTES).length === 0
-        ? 'Carga de productos pendiente — configura el Apps Script URL'
-        : 'Sin resultados para esta búsqueda') +
-      '</div>';
-    return;
-  }
-  grid.innerHTML = items.map(i =>
-    `<button type="button" class="ing-card${ingSel&&ingSel.id===i.id?' sel':''}"
-             onclick="selIng('${i.id}')">
-       <div class="i-nm">${i.nombre}</div>
-       <div class="i-un">${i.unidad}</div>
-     </button>`
-  ).join('');
-}
-
-function selIng(id) {
-  ingSel = INGREDIENTES[id];
-  if (!ingSel) return;
-  // Re-renderiza la grilla para marcar la selección
-  filtrarIng();
-  // Muestra el panel de cantidad
-  document.getElementById('qty-label').textContent = ingSel.nombre;
-  document.getElementById('qty-unit').textContent   = ingSel.unidad;
-  document.getElementById('qty-val').value = '';
-  const box = document.getElementById('qty-box');
-  box.classList.add('visible');
-  box.scrollIntoView({ behavior:'smooth', block:'nearest' });
-  document.getElementById('qty-val').focus();
-}
-
-function ajustarQty(d) {
-  const inp = document.getElementById('qty-val');
-  inp.value = Math.max(0, (parseFloat(inp.value)||0) + d);
-}
-
-// ══ PASO 5: Confirmar ══
-async function confirmar() {
-  if (!ingSel) return;
-  const cant = parseFloat(document.getElementById('qty-val').value);
-  if (!cant || cant <= 0) { document.getElementById('qty-val').focus(); return; }
-
-  const btn = document.getElementById('btn-confirmar');
-  btn.disabled = true; btn.textContent = 'Guardando…';
-
-  const ahora    = new Date();
-  const fecha    = ahora.toISOString().slice(0,10);
-  const hora     = ahora.toTimeString().slice(0,5);
-  const esEntrada = accionActual === 'ENTRADA';
-  const cantFinal = esEntrada ? cant : -cant;
-  const tipo      = esEntrada ? 'ENTRADA' : 'SALIDA_BODEGA';
-  const msg       = `${usuario} ha ${esEntrada?'ingresado':'retirado'} ${cant} ${ingSel.unidad} de ${ingSel.nombre}`;
-
-  try {
-    await Promise.all([
-      api({
-        accion: 'registrarEntrada',   // el AS registra bajo este nombre para ambas (el tipo diferencia)
-        id: `MOV-${Date.now()}`,
-        fecha, hora,
-        usuario, rol: rolLabel,
-        idIngrediente: ingSel.id, nombreIngrediente: ingSel.nombre,
-        cantidad: cantFinal, unidad: ingSel.unidad,
-        costoUnitario: ingSel.costoActual || '',
-        referencia: `Estación ${rolLabel} — ${esEntrada?'entrada':'salida'}`,
-        tipoMovimiento: tipo,
-      }),
-      api({
-        accion: 'registrarNotificacion',
-        id: `NOT-${Date.now()}`,
-        fecha, hora, usuario, rol: rolLabel,
-        idIngrediente: ingSel.id, nombreIngrediente: ingSel.nombre,
-        cantidad: cant, unidad: ingSel.unidad, mensaje: msg,
-      }),
-    ]);
-
-    document.getElementById('ok-icon').textContent = esEntrada ? '✅' : '📤';
-    document.getElementById('ok-msg').innerHTML    = msg.replace(usuario, `<b>${usuario}</b>`).replace(ingSel.nombre, `<b>${ingSel.nombre}</b>`);
-    document.getElementById('ok-who').textContent  = `${fecha} a las ${hora}`;
-    irPaso('step-ok');
-  } catch(e) {
-    alert('Error al guardar: ' + e.message);
-  } finally {
-    btn.disabled = false;
-    btn.textContent = esEntrada ? 'Confirmar entrada' : 'Confirmar salida';
-  }
-}
-
-function otroProducto() { irPaso('step-producto'); }
-
-// ══ Inicialización ══
-window.addEventListener('DOMContentLoaded', () => {
-  precargarDatos();
-});
 </script>
 </body>
 </html>
