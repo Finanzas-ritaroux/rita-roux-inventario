@@ -9,13 +9,7 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { overflow-x: hidden; background: #1a1a1a; color: #fff; font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; }
 
-/* ── Header ── */
-.hdr { background: #111; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; }
-.hdr-logo { font-size: 16px; font-weight: 700; letter-spacing: 1px; }
-.hdr-logo span { color: #c8956c; }
-.hdr-clock { text-align: right; }
-.hdr-hora { font-size: 18px; font-weight: 700; }
-.hdr-fecha { font-size: 10px; color: #888; }
+/* ── Header oculto — solo muestra el paso actual ── */
 
 /* ── Contenedor ── */
 .ctr { max-width: 520px; margin: 0 auto; padding: 14px 12px; }
@@ -28,7 +22,7 @@ html, body { overflow-x: hidden; background: #1a1a1a; color: #fff; font-family: 
 
 /* ── Selección de rol ── */
 .rol-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.big-btn { background: #222; border: 2px solid #333; border-radius: 16px; padding: 18px 10px; text-align: center; cursor: pointer; transition: all .15s; user-select: none; -webkit-tap-highlight-color: transparent; }
+.big-btn { background: #222; border: 2px solid #333; border-radius: 16px; padding: 18px 10px; text-align: center; cursor: pointer; transition: all .15s; user-select: none; -webkit-tap-highlight-color: transparent; touch-action: manipulation; font-family: inherit; width: 100%; }
 .big-btn:active, .big-btn.sel { background: #2d4d30; border-color: #5e7e62; }
 .big-btn .ic  { font-size: 28px; display: block; margin-bottom: 6px; }
 .big-btn .nm  { font-size: 14px; font-weight: 700; display: block; }
@@ -40,7 +34,7 @@ html, body { overflow-x: hidden; background: #1a1a1a; color: #fff; font-family: 
 
 /* ── Menú de acciones ── */
 .acc-grid { display: flex; flex-direction: column; gap: 12px; margin-top: 4px; }
-.acc-btn { background: #222; border: 2px solid #333; border-radius: 14px; padding: 18px; display: flex; align-items: center; gap: 14px; cursor: pointer; transition: all .15s; -webkit-tap-highlight-color: transparent; }
+.acc-btn { background: #222; border: 2px solid #333; border-radius: 14px; padding: 18px; display: flex; align-items: center; gap: 14px; cursor: pointer; transition: all .15s; -webkit-tap-highlight-color: transparent; touch-action: manipulation; font-family: inherit; width: 100%; text-align: left; }
 .acc-btn:active { background: #2d4d30; border-color: #5e7e62; }
 .acc-btn .acc-ic { font-size: 28px; }
 .acc-btn .acc-info .acc-titulo { font-size: 15px; font-weight: 700; display: block; }
@@ -121,24 +115,16 @@ html, body { overflow-x: hidden; background: #1a1a1a; color: #fff; font-family: 
 </head>
 <body>
 
-<div class="hdr">
-  <div class="hdr-logo">Rita <span>Roux</span> Bodega</div>
-  <div class="hdr-clock">
-    <div class="hdr-hora" id="hdr-hora">--:--</div>
-    <div class="hdr-fecha" id="hdr-fecha"></div>
-  </div>
-</div>
-
 <div class="ctr">
 
 <!-- ══ PASO 1: Rol ══ -->
 <div class="step active" id="step-rol">
-  <div class="step-title">¿Quién ingresa?</div>
+  <div class="step-title" style="margin-top:30px">¿Quién ingresa?</div>
   <div class="rol-grid">
-    <div class="big-btn" onclick="elegirRol('BARRA','Barra')"><span class="ic">☕</span><span class="nm">Barra</span><span class="sub">Sergio</span></div>
-    <div class="big-btn" onclick="elegirRol('COCINA','Cocina')"><span class="ic">👩‍🍳</span><span class="nm">Cocina</span><span class="sub">Kari · Pao · Sara</span></div>
-    <div class="big-btn" onclick="elegirRol('GAZON','Meseros')"><span class="ic">🧾</span><span class="nm">Meseros</span><span class="sub">Shuler · Camila · Part time</span></div>
-    <div class="big-btn" onclick="elegirRol('JEFATURA','Jefatura')"><span class="ic">👑</span><span class="nm">Jefatura</span><span class="sub">Joshua · Gerardo</span></div>
+    <button type="button" class="big-btn" onclick="elegirRol('BARRA','Barra')"><span class="ic">☕</span><span class="nm">Barra</span><span class="sub">Sergio</span></button>
+    <button type="button" class="big-btn" onclick="elegirRol('COCINA','Cocina')"><span class="ic">👩‍🍳</span><span class="nm">Cocina</span><span class="sub">Kari · Pao · Sara</span></button>
+    <button type="button" class="big-btn" onclick="elegirRol('GAZON','Meseros')"><span class="ic">🧾</span><span class="nm">Meseros</span><span class="sub">Shuler · Camila · Part time</span></button>
+    <button type="button" class="big-btn" onclick="elegirRol('JEFATURA','Jefatura')"><span class="ic">👑</span><span class="nm">Jefatura</span><span class="sub">Joshua · Gerardo</span></button>
   </div>
 </div>
 
@@ -154,14 +140,14 @@ html, body { overflow-x: hidden; background: #1a1a1a; color: #fff; font-family: 
   <button class="back-btn" onclick="irPaso('step-persona')">← Volver</button>
   <div class="user-pill">Sesión de <b id="acc-usuario-label"></b></div>
   <div class="acc-grid">
-    <div class="acc-btn" onclick="iniciarEntrada()">
+    <button type="button" class="acc-btn" onclick="iniciarEntrada()">
       <div class="acc-ic">📦</div>
       <div class="acc-info">
         <span class="acc-titulo">Ingresar mercadería</span>
         <span class="acc-desc">Registra una entrada al inventario</span>
       </div>
-    </div>
-    <div class="acc-btn" onclick="iniciarConteo()" id="acc-btn-conteo">
+    </button>
+    <button type="button" class="acc-btn" onclick="iniciarConteo()" id="acc-btn-conteo">
       <div class="acc-ic">📋</div>
       <div class="acc-info">
         <span class="acc-titulo">Contar inventario</span>
@@ -256,13 +242,6 @@ let INGREDIENTES = {}, CONFIG = {};
 let ingSeleccionado = null, catActiva = 'TODOS';
 let conteoItems = [];
 
-// ─── Reloj ────────────────────────────────────────────
-function tick() {
-  const now = new Date();
-  document.getElementById('hdr-hora').textContent = now.toLocaleTimeString('es-CL',{hour:'2-digit',minute:'2-digit'});
-  document.getElementById('hdr-fecha').textContent = now.toLocaleDateString('es-CL',{weekday:'long',day:'numeric',month:'long'});
-}
-tick(); setInterval(tick, 15000);
 
 // ─── API (Google Apps Script) ─────────────────────────
 async function api(payload) {
@@ -316,7 +295,7 @@ function irPaso(id) {
 function elegirRol(rol, label) {
   rolActual = rol; rolLabel = label;
   document.getElementById('titulo-personas').textContent = `${label} — ¿Cuál es tu nombre?`;
-  document.getElementById('grid-personas').innerHTML = (PERSONAS[rol]||[]).map(p=>`<div class="big-btn" onclick="elegirPersona('${p.n}')"><span class="ic">${p.e}</span><span class="nm">${p.n}</span></div>`).join('');
+  document.getElementById('grid-personas').innerHTML = (PERSONAS[rol]||[]).map(p=>`<button type="button" class="big-btn" onclick="elegirPersona('${p.n}')"><span class="ic">${p.e}</span><span class="nm">${p.n}</span></button>`).join('');
   irPaso('step-persona');
 }
 
