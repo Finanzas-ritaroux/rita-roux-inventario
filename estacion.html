@@ -364,42 +364,51 @@ function procesarIngredientes(data) {
 }
 
 async function cargarIngredientes() {
-  // 1) Intenta mostrar desde caché local primero — aparece INSTANTÁNEO
+  const msgEl = document.getElementById('msg-carga');
+
+  // Caché local: desde la segunda vez carga INSTANTÁNEO
   try {
-    const cached = JSON.parse(localStorage.getItem(CACHE_KEY) || 'null');
-    if (cached && Date.now() - cached.ts < CACHE_TTL && cached.data?.length) {
-      procesarIngredientes(cached.data);
-      // Actualiza el caché en segundo plano sin bloquear la UI
-      api('getIngredientes').then(r => {
-        if (r.ok && r.data?.length) {
-          localStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), data: r.data }));
-        }
-      }).catch(() => {});
-      return; // ya mostrado desde caché, no esperar la red
+    const c = JSON.parse(localStorage.getItem(CACHE_KEY) || 'null');
+    if (c && Date.now() - c.ts < CACHE_TTL && c.data?.length) {
+      procesarIngredientes(c.data);
+      fetch(AS_URL, { method:'POST', body: JSON.stringify({ accion:'getIngredientes' }) })
+        .then(r => r.json()).then(r => {
+          if (r.ok && r.data?.length)
+            localStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), data: r.data }));
+        }).catch(() => {});
+      return;
     }
   } catch(e) {}
 
-  // 2) Sin caché: muestra "Cargando…" con timeout de 12 seg
-  const msgEl = document.getElementById('msg-carga');
+  // Primera vez: conecta con timeout de 30 segundos
   msgEl.style.display = 'block';
-  msgEl.textContent = 'Cargando productos…';
+  msgEl.textContent = 'Conectando… (puede tardar unos segundos la primera vez)';
 
-  const timeout = new Promise(resolve =>
-    setTimeout(() => resolve({ ok: false, _timeout: true }), 12000)
-  );
-  const r = await Promise.race([api('getIngredientes'), timeout]);
-
-  if (r._timeout || !r.ok) {
-    msgEl.innerHTML = '⚠ No se pudo cargar.<br>' +
-      '<button type="button" onclick="cargarIngredientes()" ' +
-      'style="margin-top:10px;background:#3a3a3a;border:none;color:#fff;padding:9px 18px;border-radius:8px;cursor:pointer;font-family:inherit">Reintentar</button>';
-    return;
+  try {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 30000);
+    const resp = await fetch(AS_URL, {
+      method: 'POST',
+      body: JSON.stringify({ accion: 'getIngredientes' }),
+      signal: ctrl.signal,
+    });
+    clearTimeout(timer);
+    const r = await resp.json();
+    if (r.ok && r.data?.length) {
+      localStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), data: r.data }));
+      procesarIngredientes(r.data);
+    } else {
+      throw new Error(r.error || 'Sin datos');
+    }
+  } catch(e) {
+    msgEl.innerHTML =
+      '<div style="color:#e05252;margin-bottom:10px">⚠ ' + e.message + '</div>' +
+      '<button onclick="cargarIngredientes()" style="background:#333;border:none;color:#fff;' +
+      'padding:12px 22px;border-radius:8px;cursor:pointer;font-family:inherit;font-size:14px">' +
+      'Reintentar</button>';
   }
-
-  // 3) Guarda en caché y muestra
-  try { localStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), data: r.data })); } catch(e) {}
-  procesarIngredientes(r.data);
 }
+
 
 // Filtra los ingredientes visibles según la estación de quien está usando la app
 function actualizarFiltroEstacion() {
